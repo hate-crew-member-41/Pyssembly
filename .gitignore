@@ -1,0 +1,15 @@
+# Python code examples.
+examples/
+
+# Visual Studio Code launch configurations.
+.vscode/
+
+# Project analysis preferences.
+analysis_options.yaml
+
+# Files and directories created by pub.
+.dart_tool/
+.packages
+
+# Conventional directory for build output.
+build/
