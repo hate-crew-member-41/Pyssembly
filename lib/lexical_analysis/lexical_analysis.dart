@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
@@ -33,7 +34,7 @@ extension Line on String {
 
 	/// The [Match?] of the variable [lexeme] at the beginning of the string.
 	Match? prefixVarLexemeMatch(Lexeme lexeme) {
-		return codeLexemes[lexeme]!.matchAsPrefix(this);
+		return lexemeExprs[lexeme]!.matchAsPrefix(this);
 	}
 
 	/// The string without the [lexeme] in the beginning and possible spaces after it.
@@ -45,7 +46,7 @@ extension Line on String {
 
 /// A [List<Lexeme>] of the lexemes of the code in the [file],
 /// and a [List<Object>] of the corresponding values for the variable ones.
-Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
+Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 	int lineNumber = 0;
 
 	final lines = file.openRead().map(utf8.decode).transform(const LineSplitter()).map((line) {
@@ -53,8 +54,8 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 		return line.trimRight();
 	});
 
-	final lexemes = <Lexeme>[];
-	final values = <Object>[];
+	final lexemes = Queue<Lexeme>();
+	final values = Queue<Object>();
 
 	final indentations = [0];
 	final brackets = Stack<Lexeme>();
@@ -77,6 +78,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 
 				lexemes.add(Lexeme.indentation);
 				values.add(indentations.length - 1);
+				// lexemes.
 			}
 
 			line = line.trimLeft();
@@ -84,10 +86,8 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 			do {
 				// keywords
 
-				final functionDeclaration = codeLexemes[Lexeme.functionDeclaration] as String;
-
-				if (line.startsWith(functionDeclaration)) {
-					line = line.afterLexeme(functionDeclaration);
+				if (line.startsWith(lexemeExprs[Lexeme.functionDeclaration]!)) {
+					line = line.afterLexeme(constLexemes[Lexeme.functionDeclaration]!);
 					lexemes.add(Lexeme.functionDeclaration);
 
 					continue;
@@ -96,7 +96,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 				// parentheses
 				// todo: remove code duplication
 
-				final openingParenthesis = codeLexemes[Lexeme.openingParenthesis] as String;
+				final openingParenthesis = constLexemes[Lexeme.openingParenthesis]!;
 
 				if (line.startsWith(openingParenthesis)) {
 					line = line.afterLexeme(openingParenthesis);
@@ -106,7 +106,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final closingParenthesis = codeLexemes[Lexeme.closingParenthesis] as String;
+				final closingParenthesis = constLexemes[Lexeme.closingParenthesis]!;
 
 				if (line.startsWith(closingParenthesis)) {
 					final lastBracket = brackets.pop();
@@ -120,7 +120,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final openingSquareBracket = codeLexemes[Lexeme.openingSquareBracket] as String;
+				final openingSquareBracket = constLexemes[Lexeme.openingSquareBracket]!;
 
 				if (line.startsWith(openingSquareBracket)) {
 					line = line.afterLexeme(openingSquareBracket);
@@ -130,7 +130,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final closingSquareBracket = codeLexemes[Lexeme.closingSquareBracket] as String;
+				final closingSquareBracket = constLexemes[Lexeme.closingSquareBracket]!;
 
 				if (line.startsWith(closingSquareBracket)) {
 					final lastBracket = brackets.pop();
@@ -144,7 +144,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final openingBrace = codeLexemes[Lexeme.openingBrace] as String;
+				final openingBrace = constLexemes[Lexeme.openingBrace]!;
 
 				if (line.startsWith(openingBrace)) {
 					line = line.afterLexeme(openingBrace);
@@ -154,7 +154,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final closingBrace = codeLexemes[Lexeme.closingBrace] as String;
+				final closingBrace = constLexemes[Lexeme.closingBrace]!;
 
 				if (line.startsWith(closingBrace)) {
 					final lastBracket = brackets.pop();
@@ -256,7 +256,7 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 				final identifier = line.prefixVarLexemeMatch(Lexeme.identifier)?.group(0);
 
 				if (identifier != null) {
-					if (identifier.startsWith(codeLexemes[Lexeme.decLiteral]!)) {
+					if (identifier.startsWith(lexemeExprs[Lexeme.decLiteral]!)) {
 						throw SyntaxError.invalidIdentifier();
 					}
 	
@@ -267,8 +267,8 @@ Future<Tuple2<List<Lexeme>, List<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				// unknown symbol
-				throw SyntaxError.unknownSymbol();
+				// unknown lexeme
+				throw SyntaxError.unknownLexeme();
 
 			}
 			while (line.isNotEmpty);

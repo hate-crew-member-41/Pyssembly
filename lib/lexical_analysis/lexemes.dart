@@ -12,22 +12,20 @@ enum Lexeme {
 	openingBrace,
 	closingBrace,
 
-	// number literals
+	// number literals (variable)
 	decLiteral,
 	floatLiteral,
 	binLiteral,
 	octLiteral,
 	hexLiteral,
+	// todo: add complex literal
 
-	identifier
+	identifier  // variable
 }
 
-const numDelimiter = '_';
-const decLiteralExpression = '\\d[0-9$numDelimiter]*';
-
-final codeLexemes = {
+const constLexemes = {
 	// keywords
-	Lexeme.functionDeclaration: 'def ',
+	Lexeme.functionDeclaration: 'def',
 
 	// brackets
 	Lexeme.openingParenthesis: '(',
@@ -36,10 +34,19 @@ final codeLexemes = {
 	Lexeme.closingSquareBracket: ']',
 	Lexeme.openingBrace: '{',
 	Lexeme.closingBrace: '}',
+};
+
+const numDelimiter = '_';
+const decLiteralExpr = '\\d[0-9$numDelimiter]*';
+const nonIdentifierCharAfter = r'(?=\W|$)';
+
+final lexemeExprs = {
+	// keywords
+	Lexeme.functionDeclaration: RegExp('${constLexemes[Lexeme.functionDeclaration]}$nonIdentifierCharAfter'),
 
 	// number literals
-	Lexeme.decLiteral: RegExp(decLiteralExpression),
-	Lexeme.floatLiteral: RegExp('($decLiteralExpression)\\.($decLiteralExpression)'),
+	Lexeme.decLiteral: RegExp(decLiteralExpr),
+	Lexeme.floatLiteral: RegExp('($decLiteralExpr)\\.($decLiteralExpr)'),
 	Lexeme.binLiteral: RegExp('0b([01$numDelimiter]+)', caseSensitive: false),
 	Lexeme.octLiteral: RegExp('0o([0-7$numDelimiter]+)', caseSensitive: false),
 	Lexeme.hexLiteral: RegExp('0x([0-9a-f$numDelimiter]+)', caseSensitive: false),

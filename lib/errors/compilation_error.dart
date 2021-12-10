@@ -25,11 +25,11 @@ class IndentationError extends CompilationError {
 
 
 class SyntaxError extends CompilationError {
-	SyntaxError.wrongBracket(Lexeme expected) : super("wrong closing bracket, '${codeLexemes[expected]}' expected");
+	SyntaxError.wrongBracket(Lexeme expected) : super("wrong closing bracket, '${constLexemes[expected]}' expected");
 
 	SyntaxError.invalidNumberLiteral(String system) : super("invalid $system literal");
 
 	SyntaxError.invalidIdentifier() : super("identifier starts with a digit");
 
-	SyntaxError.unknownSymbol() : super("unknown symbol");
+	SyntaxError.unknownLexeme() : super("unknown lexeme");
 }
