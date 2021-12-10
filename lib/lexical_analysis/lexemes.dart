@@ -2,7 +2,7 @@ enum Lexeme {
 	indentation,  // variable
 
 	// keywords
-	functionDeclaration,
+	funcDecl,
 	
 	// brackets
 	openingParenthesis,
@@ -25,7 +25,7 @@ enum Lexeme {
 
 const constLexemes = {
 	// keywords
-	Lexeme.functionDeclaration: 'def',
+	Lexeme.funcDecl: 'def',
 
 	// brackets
 	Lexeme.openingParenthesis: '(',
@@ -42,7 +42,7 @@ const nonIdentifierCharAfter = r'(?=\W|$)';
 
 final lexemeExprs = {
 	// keywords
-	Lexeme.functionDeclaration: RegExp('${constLexemes[Lexeme.functionDeclaration]}$nonIdentifierCharAfter'),
+	Lexeme.funcDecl: RegExp('${constLexemes[Lexeme.funcDecl]}$nonIdentifierCharAfter'),
 
 	// number literals
 	Lexeme.decLiteral: RegExp(decLiteralExpr),
@@ -52,7 +52,7 @@ final lexemeExprs = {
 	Lexeme.hexLiteral: RegExp('0x([0-9a-f$numDelimiter]+)', caseSensitive: false),
 
 	// identifier
-	Lexeme.identifier: RegExp(r'[a-z_]\w*', caseSensitive: false),
+	Lexeme.identifier: RegExp(r'[a-z_]\w*', caseSensitive: false)
 };
 
 const closingBrackets = {

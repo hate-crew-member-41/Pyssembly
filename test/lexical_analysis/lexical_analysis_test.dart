@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 
-import 'package:pyssembly/errors/compilation_error.dart' show IndentationError;
+import 'package:pyssembly/errors/indentation_error.dart' show IndentationError;
 import 'package:pyssembly/lexical_analysis/lexical_analysis.dart' show Line;
 
 

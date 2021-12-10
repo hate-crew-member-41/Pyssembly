@@ -87,7 +87,6 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 	final values = Queue<Object>();
 
 	final indentations = [0];
-	// todo: the stack must be empty in the end (there are unclosed brackets if it is not)
 	final brackets = Stack<Lexeme>();
 
 	try {
@@ -113,38 +112,34 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 			line = line.trimLeft();
 
 			// todo: consider using "else if" instead of "continue" statements if there are none between the blocks
-			do {
+			handleLexeme: do {
 				// keywords
 
-				if (line.startsWith(lexemeExprs[Lexeme.functionDeclaration]!)) {
-					line = line.afterLexeme(constLexemes[Lexeme.functionDeclaration]!);
-					lexemes.add(Lexeme.functionDeclaration);
+				if (line.startsWith(lexemeExprs[Lexeme.funcDecl]!)) {
+					lexemes.add(Lexeme.funcDecl);
+					line = line.afterLexeme(constLexemes[Lexeme.funcDecl]!);
 
 					continue;
 				}
 
 				// brackets
 
-				var bracket = line.handleBracket(Lexeme.openingParenthesis, brackets, lexemes);
-				if (bracket != null) {
-					line = line.afterLexeme(constLexemes[bracket]!);
-					continue;
+				for (final openingBracket in closingBrackets.keys) {
+					final bracket = line.handleBracket(openingBracket, brackets, lexemes);
+
+					if (bracket != null) {
+						line = line.afterLexeme(constLexemes[bracket]!);
+						continue handleLexeme;
+					}
 				}
 
-				bracket = line.handleBracket(Lexeme.openingSquareBracket, brackets, lexemes);
-				if (bracket != null) {
-					line = line.afterLexeme(constLexemes[bracket]!);
-					continue;
-				}
+				// symbols
 
-				bracket = line.handleBracket(Lexeme.openingBrace, brackets, lexemes);
-				if (bracket != null) {
-					line = line.afterLexeme(constLexemes[bracket]!);
-					continue;
-				}
+				// if (line.startsWith(constLexemes[Lexeme.colon]!)) {
+				// 	line = line.afterLexeme(lexeme)
+				// }
 
 				// number literals
-				// todo: remove code duplication
 
 				final binLiteralMatch = line.varLexemeMatch(Lexeme.binLiteral);
 
@@ -155,9 +150,9 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 						throw SyntaxError.invalidNumberLiteral('binary');
 					}
 
-					line = line.afterLexeme(binLiteralMatch.group(0)!);
 					lexemes.add(Lexeme.binLiteral);
 					values.add(literal.replaceAll(numDelimiter, ''));
+					line = line.afterLexeme(binLiteralMatch.group(0)!);
 
 					continue;
 				}
@@ -171,9 +166,9 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 						throw SyntaxError.invalidNumberLiteral('octal');
 					}
 
-					line = line.afterLexeme(octLiteralMatch.group(0)!);
 					lexemes.add(Lexeme.octLiteral);
 					values.add(literal.replaceAll(numDelimiter, ''));
+					line = line.afterLexeme(octLiteralMatch.group(0)!);
 
 					continue;
 				}
@@ -187,9 +182,9 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 						throw SyntaxError.invalidNumberLiteral('hexadecimal');
 					}
 
-					line = line.afterLexeme(hexLiteralMatch.group(0)!);
 					lexemes.add(Lexeme.hexLiteral);
-					values.add(literal.replaceAll(numDelimiter, ''));
+					values.add(literal.replaceAll(numDelimiter, '').toLowerCase());
+					line = line.afterLexeme(hexLiteralMatch.group(0)!);
 
 					continue;
 				}
@@ -205,9 +200,9 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					}
 
 					final literal = floatLiteralMatch.group(0)!;
-					line = line.afterLexeme(literal);
 					lexemes.add(Lexeme.floatLiteral);
 					values.add(literal.replaceAll(numDelimiter, ''));
+					line = line.afterLexeme(literal);
 
 					continue;
 				}
@@ -219,9 +214,9 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 						throw SyntaxError.invalidNumberLiteral('decimal');
 					}
 
-					line = line.afterLexeme(decLiteral);
 					lexemes.add(Lexeme.decLiteral);
 					values.add(decLiteral.replaceAll(numDelimiter, ''));
+					line = line.afterLexeme(decLiteral);
 
 					continue;
 				}
@@ -235,8 +230,8 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 						throw SyntaxError.invalidIdentifier();
 					}
 	
-					line = line.afterLexeme(identifier);
 					lexemes.add(Lexeme.identifier);
+					line = line.afterLexeme(identifier);
 					values.add(identifier);
 
 					continue;
