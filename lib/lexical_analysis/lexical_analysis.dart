@@ -5,7 +5,10 @@ import 'dart:io';
 import 'package:stack/stack.dart';
 import 'package:tuple/tuple.dart';
 
+import 'package:pyssembly/errors/bracket_error.dart';
 import 'package:pyssembly/errors/compilation_error.dart';
+import 'package:pyssembly/errors/indentation_error.dart';
+import 'package:pyssembly/errors/syntax_error.dart';
 
 import 'lexemes.dart';
 
@@ -43,11 +46,14 @@ extension Line on String {
 		final closing = closingBrackets[opening]!;
 
 		if (startsWith(constLexemes[closing]!)) {
-			// todo: handle the case when the stack is empty (meaning unexpected closing bracket)
+			if (brackets.isEmpty) {
+				throw BracketError.unexpectedClosing(closing);
+			}
+
 			final lastOpening = brackets.pop();
 
 			if (lastOpening != opening) {
-				throw SyntaxError.wrongBracket(closingBrackets[lastOpening]!);
+				throw BracketError.wrongClosing(closingBrackets[lastOpening]!);
 			}
 
 			lexemes.add(closing);
@@ -241,6 +247,10 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 			}
 			while (line.isNotEmpty);
+		}
+
+		if (brackets.isNotEmpty) {
+			throw BracketError.closingExpected(closingBrackets[brackets.pop()]!);
 		}
 	}
 	on CompilationError catch (error) {
