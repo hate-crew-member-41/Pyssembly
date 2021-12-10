@@ -12,6 +12,11 @@ enum Lexeme {
 	openingBrace,
 	closingBrace,
 
+	// symbols
+	comma,
+	colon,
+	semicolon,
+
 	// number literals (variable)
 	decLiteral,
 	floatLiteral,
@@ -34,6 +39,11 @@ const constLexemes = {
 	Lexeme.closingSquareBracket: ']',
 	Lexeme.openingBrace: '{',
 	Lexeme.closingBrace: '}',
+
+	// symbols
+	Lexeme.comma: ',',
+	Lexeme.semicolon: ';',
+	Lexeme.colon: ':'
 };
 
 const numDelimiter = '_';

@@ -10,7 +10,7 @@ import 'syntax_analysis/syntax_tree.dart' show syntaxTree;
 Future<void> compile(File file) async {
 	try {
 		final lexemesValues = await lexemes(file);
-		var tree = syntaxTree(lexemesValues.item1, lexemesValues.item2);
+		// var tree = syntaxTree(lexemesValues.item1, lexemesValues.item2);
 	}
 	on CompilationError catch (error) {
 		print(error);

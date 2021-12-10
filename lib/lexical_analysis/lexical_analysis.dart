@@ -135,9 +135,32 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 				// symbols
 
-				// if (line.startsWith(constLexemes[Lexeme.colon]!)) {
-				// 	line = line.afterLexeme(lexeme)
-				// }
+				final comma = constLexemes[Lexeme.comma]!;
+
+				if (line.startsWith(comma)) {
+					lexemes.add(Lexeme.comma);
+					line = line.afterLexeme(comma);
+
+					continue;
+				}
+
+				final colon = constLexemes[Lexeme.colon]!;
+
+				if (line.startsWith(colon)) {
+					lexemes.add(Lexeme.colon);
+					line = line.afterLexeme(colon);
+
+					continue;
+				}
+
+				final semicolon = constLexemes[Lexeme.semicolon]!;
+
+				if (line.startsWith(semicolon)) {
+					lexemes.add(Lexeme.semicolon);
+					line = line.afterLexeme(semicolon);
+
+					continue;
+				}
 
 				// number literals
 
