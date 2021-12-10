@@ -32,20 +32,43 @@ extension Line on String {
 		throw IndentationError.noMatch();
 	}
 
+	/// The bracket of the [opening] bracket's family at the beginning of the string.
+	Lexeme? handleBracket(Lexeme opening, Stack<Lexeme> brackets, Queue<Lexeme> lexemes) {
+		if (startsWith(constLexemes[opening]!)) {
+			brackets.push(opening);
+			lexemes.add(opening);
+			return opening;
+		}
+
+		final closing = closingBrackets[opening]!;
+
+		if (startsWith(constLexemes[closing]!)) {
+			// todo: handle the case when the stack is empty (meaning unexpected closing bracket)
+			final lastOpening = brackets.pop();
+
+			if (lastOpening != opening) {
+				throw SyntaxError.wrongBracket(closingBrackets[lastOpening]!);
+			}
+
+			lexemes.add(closing);
+			return closing;
+		}
+	}
+
 	/// The [Match?] of the variable [lexeme] at the beginning of the string.
-	Match? prefixVarLexemeMatch(Lexeme lexeme) {
+	Match? varLexemeMatch(Lexeme lexeme) {
 		return lexemeExprs[lexeme]!.matchAsPrefix(this);
 	}
 
-	/// The string without the [lexeme] in the beginning and possible spaces after it.
+	/// The string without the [lexeme] at the beginning and possible spaces after it.
 	String afterLexeme(String lexeme) {
 		return replaceRange(0, lexeme.length, '').trimLeft();
 	}
 }
 
 
-/// A [List<Lexeme>] of the lexemes of the code in the [file],
-/// and a [List<Object>] of the corresponding values for the variable ones.
+/// A [Queue<Lexeme>] of the lexemes of the code in the [file],
+/// and a [Queue<Object>] of the corresponding values for the variable ones.
 Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 	int lineNumber = 0;
 
@@ -58,6 +81,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 	final values = Queue<Object>();
 
 	final indentations = [0];
+	// todo: the stack must be empty in the end (there are unclosed brackets if it is not)
 	final brackets = Stack<Lexeme>();
 
 	try {
@@ -78,11 +102,11 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 				lexemes.add(Lexeme.indentation);
 				values.add(indentations.length - 1);
-				// lexemes.
 			}
 
 			line = line.trimLeft();
 
+			// todo: consider using "else if" instead of "continue" statements if there are none between the blocks
 			do {
 				// keywords
 
@@ -93,85 +117,30 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				// parentheses
-				// todo: remove code duplication
+				// brackets
 
-				final openingParenthesis = constLexemes[Lexeme.openingParenthesis]!;
-
-				if (line.startsWith(openingParenthesis)) {
-					line = line.afterLexeme(openingParenthesis);
-					lexemes.add(Lexeme.openingParenthesis);
-					brackets.push(Lexeme.openingParenthesis);
-
+				var bracket = line.handleBracket(Lexeme.openingParenthesis, brackets, lexemes);
+				if (bracket != null) {
+					line = line.afterLexeme(constLexemes[bracket]!);
 					continue;
 				}
 
-				final closingParenthesis = constLexemes[Lexeme.closingParenthesis]!;
-
-				if (line.startsWith(closingParenthesis)) {
-					final lastBracket = brackets.pop();
-					if (lastBracket != Lexeme.openingParenthesis) {
-						throw SyntaxError.wrongBracket(closingBrackets[lastBracket]!);
-					}
-
-					line = line.afterLexeme(closingParenthesis);
-					lexemes.add(Lexeme.closingParenthesis);
-
+				bracket = line.handleBracket(Lexeme.openingSquareBracket, brackets, lexemes);
+				if (bracket != null) {
+					line = line.afterLexeme(constLexemes[bracket]!);
 					continue;
 				}
 
-				final openingSquareBracket = constLexemes[Lexeme.openingSquareBracket]!;
-
-				if (line.startsWith(openingSquareBracket)) {
-					line = line.afterLexeme(openingSquareBracket);
-					lexemes.add(Lexeme.openingSquareBracket);
-					brackets.push(Lexeme.openingSquareBracket);
-
-					continue;
-				}
-
-				final closingSquareBracket = constLexemes[Lexeme.closingSquareBracket]!;
-
-				if (line.startsWith(closingSquareBracket)) {
-					final lastBracket = brackets.pop();
-					if (lastBracket != Lexeme.openingSquareBracket) {
-						throw SyntaxError.wrongBracket(closingBrackets[lastBracket]!);
-					}
-
-					line = line.afterLexeme(closingSquareBracket);
-					lexemes.add(Lexeme.closingSquareBracket);
-
-					continue;
-				}
-
-				final openingBrace = constLexemes[Lexeme.openingBrace]!;
-
-				if (line.startsWith(openingBrace)) {
-					line = line.afterLexeme(openingBrace);
-					lexemes.add(Lexeme.openingBrace);
-					brackets.push(Lexeme.openingBrace);
-
-					continue;
-				}
-
-				final closingBrace = constLexemes[Lexeme.closingBrace]!;
-
-				if (line.startsWith(closingBrace)) {
-					final lastBracket = brackets.pop();
-					if (lastBracket != Lexeme.openingBrace) {
-						throw SyntaxError.wrongBracket(closingBrackets[lastBracket]!);
-					}
-
-					line = line.afterLexeme(closingBrace);
-					lexemes.add(Lexeme.closingBrace);
-
+				bracket = line.handleBracket(Lexeme.openingBrace, brackets, lexemes);
+				if (bracket != null) {
+					line = line.afterLexeme(constLexemes[bracket]!);
 					continue;
 				}
 
 				// number literals
 				// todo: remove code duplication
 
-				final binLiteralMatch = line.prefixVarLexemeMatch(Lexeme.binLiteral);
+				final binLiteralMatch = line.varLexemeMatch(Lexeme.binLiteral);
 
 				if (binLiteralMatch != null) {
 					final literal = binLiteralMatch.group(1)!;
@@ -187,7 +156,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final octLiteralMatch = line.prefixVarLexemeMatch(Lexeme.octLiteral);
+				final octLiteralMatch = line.varLexemeMatch(Lexeme.octLiteral);
 
 				if (octLiteralMatch != null) {
 					final literal = octLiteralMatch.group(1)!;
@@ -203,7 +172,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final hexLiteralMatch = line.prefixVarLexemeMatch(Lexeme.hexLiteral);
+				final hexLiteralMatch = line.varLexemeMatch(Lexeme.hexLiteral);
 
 				if (hexLiteralMatch != null) {
 					final literal = hexLiteralMatch.group(1)!;
@@ -219,7 +188,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final floatLiteralMatch = line.prefixVarLexemeMatch(Lexeme.floatLiteral);
+				final floatLiteralMatch = line.varLexemeMatch(Lexeme.floatLiteral);
 
 				if (floatLiteralMatch != null) {
 					if (
@@ -237,7 +206,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final decLiteral = line.prefixVarLexemeMatch(Lexeme.decLiteral)?.group(0);
+				final decLiteral = line.varLexemeMatch(Lexeme.decLiteral)?.group(0);
 
 				if (decLiteral != null) {
 					if (decLiteral.endsWith(numDelimiter)) {
@@ -253,7 +222,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 				// identifier
 
-				final identifier = line.prefixVarLexemeMatch(Lexeme.identifier)?.group(0);
+				final identifier = line.varLexemeMatch(Lexeme.identifier)?.group(0);
 
 				if (identifier != null) {
 					if (identifier.startsWith(lexemeExprs[Lexeme.decLiteral]!)) {
