@@ -3,7 +3,7 @@ enum Lexeme {
 
 	// keywords
 	funcDecl,
-	
+
 	// brackets
 	openingParenthesis,
 	closingParenthesis,
@@ -15,7 +15,6 @@ enum Lexeme {
 	// symbols
 	comma,
 	colon,
-	semicolon,
 
 	// number literals (variable)
 	decLiteral,
@@ -42,10 +41,10 @@ const constLexemes = {
 
 	// symbols
 	Lexeme.comma: ',',
-	Lexeme.semicolon: ';',
 	Lexeme.colon: ':'
 };
 
+const statementDelimiter = ';';
 const numDelimiter = '_';
 const decLiteralExpr = '\\d[0-9$numDelimiter]*';
 const nonIdentifierCharAfter = r'(?=\W|$)';

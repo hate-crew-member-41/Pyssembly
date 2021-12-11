@@ -72,6 +72,10 @@ extension Line on String {
 	}
 }
 
+extension Indentations on List<int> {
+	int get level => length - 1;
+}
+
 
 /// A [Queue<Lexeme>] of the lexemes of the code in the [file],
 /// and a [Queue<Object>] of the corresponding values for the variable ones.
@@ -106,7 +110,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 				}
 
 				lexemes.add(Lexeme.indentation);
-				values.add(indentations.length - 1);
+				values.add(indentations.level);
 			}
 
 			line = line.trimLeft();
@@ -153,11 +157,11 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				final semicolon = constLexemes[Lexeme.semicolon]!;
-
-				if (line.startsWith(semicolon)) {
-					lexemes.add(Lexeme.semicolon);
-					line = line.afterLexeme(semicolon);
+				if (line.startsWith(statementDelimiter)) {
+					// treat what follows as if written on a new line
+					lexemes.add(Lexeme.indentation);
+					values.add(indentations.level);
+					line = line.afterLexeme(statementDelimiter);
 
 					continue;
 				}
