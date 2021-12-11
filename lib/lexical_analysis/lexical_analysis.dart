@@ -115,15 +115,16 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 			line = line.trimLeft();
 
-			// todo: consider using "else if" instead of "continue" statements if there are none between the blocks
 			handleLexeme: do {
 				// keywords
 
-				if (line.startsWith(lexemeExprs[Lexeme.funcDecl]!)) {
-					lexemes.add(Lexeme.funcDecl);
-					line = line.afterLexeme(constLexemes[Lexeme.funcDecl]!);
+				for (final keyword in keywords) {
+					if (line.startsWith(lexemeExprs[keyword]!)) {
+						lexemes.add(keyword);
+						line = line.afterLexeme(constLexemes[keyword]!);
 
-					continue;
+						continue handleLexeme;
+					}
 				}
 
 				// brackets

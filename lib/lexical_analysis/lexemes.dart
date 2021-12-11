@@ -2,7 +2,13 @@ enum Lexeme {
 	indentation,  // variable
 
 	// keywords
-	funcDecl,
+	defKeyword,
+	ifKeyword,
+	elifKeyword,
+	elseKeyword,
+	forKeyword,
+	inKeyword,
+	whileKeyword,
 
 	// brackets
 	openingParenthesis,
@@ -29,7 +35,13 @@ enum Lexeme {
 
 const constLexemes = {
 	// keywords
-	Lexeme.funcDecl: 'def',
+	Lexeme.defKeyword: 'def',
+	Lexeme.ifKeyword: 'if',
+	Lexeme.elifKeyword: 'elif',
+	Lexeme.elseKeyword: 'else',
+	Lexeme.forKeyword: 'for',
+	Lexeme.inKeyword: 'in',
+	Lexeme.whileKeyword: 'while',
 
 	// brackets
 	Lexeme.openingParenthesis: '(',
@@ -44,6 +56,15 @@ const constLexemes = {
 	Lexeme.colon: ':'
 };
 
+const keywords = [
+	Lexeme.defKeyword,
+	Lexeme.ifKeyword,
+	Lexeme.elifKeyword,
+	Lexeme.elseKeyword,
+	Lexeme.forKeyword,
+	Lexeme.whileKeyword
+];
+
 const statementDelimiter = ';';
 const numDelimiter = '_';
 const decLiteralExpr = '\\d[0-9$numDelimiter]*';
@@ -51,7 +72,8 @@ const nonIdentifierCharAfter = r'(?=\W|$)';
 
 final lexemeExprs = {
 	// keywords
-	Lexeme.funcDecl: RegExp('${constLexemes[Lexeme.funcDecl]}$nonIdentifierCharAfter'),
+	for (final lexeme in keywords)
+		lexeme: RegExp('${constLexemes[lexeme]}$nonIdentifierCharAfter'),
 
 	// number literals
 	Lexeme.decLiteral: RegExp(decLiteralExpr),
