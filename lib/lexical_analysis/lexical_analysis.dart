@@ -197,7 +197,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					final literal = binLiteralMatch.group(1)!;
 
 					if (literal.endsWith(numDelimiter)) {
-						throw SyntaxError.invalidNumberLiteral('binary');
+						throw SyntaxError.invalidNum('binary');
 					}
 
 					lexemes.add(Lexeme.binLiteral);
@@ -212,7 +212,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					final literal = octLiteralMatch.group(1)!;
 
 					if (literal.endsWith(numDelimiter)) {
-						throw SyntaxError.invalidNumberLiteral('octal');
+						throw SyntaxError.invalidNum('octal');
 					}
 
 					lexemes.add(Lexeme.octLiteral);
@@ -227,7 +227,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					final literal = hexLiteralMatch.group(1)!;
 
 					if (literal.endsWith(numDelimiter)) {
-						throw SyntaxError.invalidNumberLiteral('hexadecimal');
+						throw SyntaxError.invalidNum('hexadecimal');
 					}
 
 					lexemes.add(Lexeme.hexLiteral);
@@ -243,7 +243,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 						floatLiteralMatch.group(1)!.endsWith(numDelimiter) ||
 						floatLiteralMatch.group(2)!.endsWith(numDelimiter)
 					) {
-						throw SyntaxError.invalidNumberLiteral('decimal');
+						throw SyntaxError.invalidNum('decimal');
 					}
 
 					final literal = floatLiteralMatch.group(0)!;
@@ -257,7 +257,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 				if (decLiteral != null) {
 					if (decLiteral.endsWith(numDelimiter)) {
-						throw SyntaxError.invalidNumberLiteral('decimal');
+						throw SyntaxError.invalidNum('decimal');
 					}
 
 					lexemes.add(Lexeme.decLiteral);
@@ -271,9 +271,17 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 				final strLiteralMatch = line.varLexemeMatch(Lexeme.strLiteral);
 
 				if (strLiteralMatch != null) {
-					var value = strLiteralMatch.group(3)?.replaceAll(r"\'", "'");  // the literal uses single quotes
-					value ??= strLiteralMatch.group(5)?.replaceAll(r'\"', '"');  // the literal uses double quotes
-					value ??= strLiteralMatch.group(2)!;  // the literal uses triple quotes of a kind
+					// the literal uses: single quotes / double quotes / triple quotes of a kind
+					var value = strLiteralMatch.group(3) ?? strLiteralMatch.group(5) ?? strLiteralMatch.group(2)!;
+
+					if (value.endsWith(r'\')) {
+						// the closing quote is escaped
+						throw SyntaxError.unterminatedStr();
+					}
+
+					for (final char in ["'", '"', r'\']) {
+						value = value.replaceAll('\\$char', char);
+					}
 
 					if (lexemes.last != Lexeme.strLiteral) {
 						lexemes.add(Lexeme.strLiteral);
@@ -284,6 +292,8 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					line = line.afterLexeme(strLiteralMatch.group(0)!);
 					continue;
 				}
+
+				// todo: handle recognizable invalid lexemes for better error messages
 
 				// unknown lexeme
 				throw SyntaxError.unknownLexeme();

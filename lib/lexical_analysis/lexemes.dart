@@ -65,7 +65,6 @@ const constLexemes = {
 	Lexeme.comma: ',',
 	Lexeme.colon: ':',
 
-	// identifier
 	Lexeme.noneLiteral: 'None'
 };
 
