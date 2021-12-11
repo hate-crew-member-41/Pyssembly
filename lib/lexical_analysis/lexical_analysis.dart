@@ -116,12 +116,12 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 			line = line.trimLeft();
 
 			handleLexeme: do {
-				// keywords
+				// next-char-dependent constant lexemes
 
-				for (final keyword in keywords) {
-					if (line.startsWith(lexemeExprs[keyword]!)) {
-						lexemes.add(keyword);
-						line = line.afterLexeme(constLexemes[keyword]!);
+				for (final lexeme in nextCharDependentConstLexemes) {
+					if (line.startsWith(lexemeExprs[lexeme]!)) {
+						lexemes.add(lexeme);
+						line = line.afterLexeme(constLexemes[lexeme]!);
 
 						continue handleLexeme;
 					}
@@ -245,6 +245,18 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					lexemes.add(Lexeme.decLiteral);
 					values.add(decLiteral.replaceAll(numDelimiter, ''));
 					line = line.afterLexeme(decLiteral);
+
+					continue;
+				}
+
+				// bool literal
+
+				final boolLiteral = line.varLexemeMatch(Lexeme.boolLiteral)?.group(0);
+
+				if (boolLiteral != null) {
+					lexemes.add(Lexeme.boolLiteral);
+					values.add(boolLiteral == trueLiteral);
+					line = line.afterLexeme(boolLiteral);
 
 					continue;
 				}
