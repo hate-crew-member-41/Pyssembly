@@ -115,7 +115,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 			line = line.trimLeft();
 
-			handleLexeme: do {
+			handleLexeme: while (line.isNotEmpty) {
 				// next-char-dependent constant lexemes
 
 				for (final lexeme in nextCharDependentConstLexemes) {
@@ -158,13 +158,12 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					continue;
 				}
 
-				if (line.startsWith(statementDelimiter)) {
-					// treat what follows as if written on a new line
+				if (line.startsWith(statementDelimiter)) {  // treat what follows as if written on a new line
+					line = line.afterLexeme(statementDelimiter);
+					if (line.isEmpty) continue;
+
 					lexemes.add(Lexeme.indentation);
 					values.add(indentations.level);
-					line = line.afterLexeme(statementDelimiter);
-
-					continue;
 				}
 
 				// number literals
@@ -281,7 +280,6 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 				throw SyntaxError.unknownLexeme();
 
 			}
-			while (line.isNotEmpty);
 		}
 
 		if (brackets.isNotEmpty) {

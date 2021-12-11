@@ -3,12 +3,16 @@ enum Lexeme {
 
 	// keywords
 	defKeyword,
+	returnKeyword,
+	passKeyword,
 	ifKeyword,
 	elifKeyword,
 	elseKeyword,
 	forKeyword,
 	inKeyword,
 	whileKeyword,
+	continueKeyword,
+	breakKeyword,
 
 	// brackets
 	openingParenthesis,
@@ -41,12 +45,16 @@ enum Lexeme {
 const constLexemes = {
 	// keywords
 	Lexeme.defKeyword: 'def',
+	Lexeme.returnKeyword: 'return',
+	Lexeme.passKeyword: 'pass',
 	Lexeme.ifKeyword: 'if',
 	Lexeme.elifKeyword: 'elif',
 	Lexeme.elseKeyword: 'else',
 	Lexeme.forKeyword: 'for',
 	Lexeme.inKeyword: 'in',
 	Lexeme.whileKeyword: 'while',
+	Lexeme.continueKeyword: 'continue',
+	Lexeme.breakKeyword: 'break',
 
 	// brackets
 	Lexeme.openingParenthesis: '(',
@@ -66,12 +74,16 @@ const constLexemes = {
 
 const nextCharDependentConstLexemes = [
 	Lexeme.defKeyword,
+	Lexeme.returnKeyword,
+	Lexeme.passKeyword,
 	Lexeme.ifKeyword,
 	Lexeme.elifKeyword,
 	Lexeme.elseKeyword,
 	Lexeme.forKeyword,
 	Lexeme.inKeyword,
 	Lexeme.whileKeyword,
+	Lexeme.continueKeyword,
+	Lexeme.breakKeyword,
 	Lexeme.noneLiteral
 ];
 
