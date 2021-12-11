@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'errors/compilation_error.dart' show CompilationError;
 import 'lexical_analysis/lexical_analysis.dart' show lexemes;
-import 'syntax_analysis/syntax_tree.dart' show syntaxTree;
+// import 'syntax_analysis/syntax_tree.dart' show syntaxTree;
 
 
 /// Compile the code in the Python [file] to Assembly,

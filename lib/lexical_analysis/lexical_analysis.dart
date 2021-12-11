@@ -97,7 +97,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 		await for (String line in lines) {
 			if (line.isEmpty) continue;
 
-			// todo: or \
+			// todo: or the previous line was ended with '\'
 			if (brackets.isEmpty) {
 				final indentationChange_ = line.indentationChange(indentations);
 				
@@ -115,16 +115,40 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 			line = line.trimLeft();
 
+			// todo: think about the order to make each iteration the cheapest possible
 			handleLexeme: while (line.isNotEmpty) {
-				// next-char-dependent constant lexemes
+				// next-char-dependent constant lexemes and bool literal
 
 				for (final lexeme in nextCharDependentConstLexemes) {
 					if (line.startsWith(lexemeExprs[lexeme]!)) {
 						lexemes.add(lexeme);
 						line = line.afterLexeme(constLexemes[lexeme]!);
-
 						continue handleLexeme;
 					}
+				}
+
+				final boolLiteral = line.varLexemeMatch(Lexeme.boolLiteral)?.group(0);
+
+				if (boolLiteral != null) {
+					lexemes.add(Lexeme.boolLiteral);
+					values.add(boolLiteral == trueLiteral);
+					line = line.afterLexeme(boolLiteral);
+					continue;
+				}
+
+				// identifier
+
+				final identifier = line.varLexemeMatch(Lexeme.identifier)?.group(0);
+
+				if (identifier != null) {
+					if (identifier.startsWith(lexemeExprs[Lexeme.decLiteral]!)) {
+						throw SyntaxError.invalidIdentifier();
+					}
+	
+					lexemes.add(Lexeme.identifier);
+					line = line.afterLexeme(identifier);
+					values.add(identifier);
+					continue;
 				}
 
 				// brackets
@@ -145,7 +169,6 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 				if (line.startsWith(comma)) {
 					lexemes.add(Lexeme.comma);
 					line = line.afterLexeme(comma);
-
 					continue;
 				}
 
@@ -154,14 +177,14 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 				if (line.startsWith(colon)) {
 					lexemes.add(Lexeme.colon);
 					line = line.afterLexeme(colon);
-
 					continue;
 				}
 
-				if (line.startsWith(statementDelimiter)) {  // treat what follows as if written on a new line
+				if (line.startsWith(statementDelimiter)) {
 					line = line.afterLexeme(statementDelimiter);
 					if (line.isEmpty) continue;
 
+					// treat what follows as if written on a new line
 					lexemes.add(Lexeme.indentation);
 					values.add(indentations.level);
 				}
@@ -180,7 +203,6 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					lexemes.add(Lexeme.binLiteral);
 					values.add(literal.replaceAll(numDelimiter, ''));
 					line = line.afterLexeme(binLiteralMatch.group(0)!);
-
 					continue;
 				}
 
@@ -196,7 +218,6 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					lexemes.add(Lexeme.octLiteral);
 					values.add(literal.replaceAll(numDelimiter, ''));
 					line = line.afterLexeme(octLiteralMatch.group(0)!);
-
 					continue;
 				}
 
@@ -212,7 +233,6 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					lexemes.add(Lexeme.hexLiteral);
 					values.add(literal.replaceAll(numDelimiter, '').toLowerCase());
 					line = line.afterLexeme(hexLiteralMatch.group(0)!);
-
 					continue;
 				}
 
@@ -230,7 +250,6 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					lexemes.add(Lexeme.floatLiteral);
 					values.add(literal.replaceAll(numDelimiter, ''));
 					line = line.afterLexeme(literal);
-
 					continue;
 				}
 
@@ -244,35 +263,25 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					lexemes.add(Lexeme.decLiteral);
 					values.add(decLiteral.replaceAll(numDelimiter, ''));
 					line = line.afterLexeme(decLiteral);
-
 					continue;
 				}
 
-				// bool literal
+				// string literal
 
-				final boolLiteral = line.varLexemeMatch(Lexeme.boolLiteral)?.group(0);
+				final strLiteralMatch = line.varLexemeMatch(Lexeme.strLiteral);
 
-				if (boolLiteral != null) {
-					lexemes.add(Lexeme.boolLiteral);
-					values.add(boolLiteral == trueLiteral);
-					line = line.afterLexeme(boolLiteral);
+				if (strLiteralMatch != null) {
+					var value = strLiteralMatch.group(3)?.replaceAll(r"\'", "'");  // the literal uses single quotes
+					value ??= strLiteralMatch.group(5)?.replaceAll(r'\"', '"');  // the literal uses double quotes
+					value ??= strLiteralMatch.group(2)!;  // the literal uses triple quotes of a kind
 
-					continue;
-				}
-
-				// identifier
-
-				final identifier = line.varLexemeMatch(Lexeme.identifier)?.group(0);
-
-				if (identifier != null) {
-					if (identifier.startsWith(lexemeExprs[Lexeme.decLiteral]!)) {
-						throw SyntaxError.invalidIdentifier();
+					if (lexemes.last != Lexeme.strLiteral) {
+						lexemes.add(Lexeme.strLiteral);
+						values.add(value);
 					}
-	
-					lexemes.add(Lexeme.identifier);
-					line = line.afterLexeme(identifier);
-					values.add(identifier);
+					else values.add((values.removeLast() as String) + value);
 
+					line = line.afterLexeme(strLiteralMatch.group(0)!);
 					continue;
 				}
 

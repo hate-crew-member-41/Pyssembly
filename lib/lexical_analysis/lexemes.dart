@@ -14,6 +14,8 @@ enum Lexeme {
 	continueKeyword,
 	breakKeyword,
 
+	identifier,  // variable
+
 	// brackets
 	openingParenthesis,
 	closingParenthesis,
@@ -26,20 +28,15 @@ enum Lexeme {
 	comma,
 	colon,
 
-	// number literals (variable)
+	// literals (variable)
+	strLiteral,
 	decLiteral,
 	floatLiteral,
 	binLiteral,
 	octLiteral,
 	hexLiteral,
-	// todo: add complex literal
-
-	// bool and none literals
-	boolLiteral,  // variable
-	noneLiteral,
-
-	// identifier
-	identifier  // variable
+	boolLiteral,
+	noneLiteral  // constant
 }
 
 const constLexemes = {
@@ -98,14 +95,17 @@ final lexemeExprs = {
 	for (final lexeme in nextCharDependentConstLexemes)
 		lexeme: RegExp('${constLexemes[lexeme]}$nonIdentifierCharAfter'),
 
-	// number literals
+	// literals
+	Lexeme.strLiteral: RegExp(
+		'(\'{3}|"{3})(.*)\\1|'  // value group: 2
+		r"'(([^']|(?<=\\)')*)'|"  // value group: 3
+		r'"(([^"]|(?<=\\)")*)"'  // value group: 5
+	),
 	Lexeme.decLiteral: RegExp(decLiteralExpr),
 	Lexeme.floatLiteral: RegExp('($decLiteralExpr)\\.($decLiteralExpr)'),
 	Lexeme.binLiteral: RegExp('0b([01$numDelimiter]+)', caseSensitive: false),
 	Lexeme.octLiteral: RegExp('0o([0-7$numDelimiter]+)', caseSensitive: false),
 	Lexeme.hexLiteral: RegExp('0x([0-9a-f$numDelimiter]+)', caseSensitive: false),
-
-	// bool literal
 	Lexeme.boolLiteral: RegExp('($trueLiteral|False)$nonIdentifierCharAfter'),
 
 	// identifier
