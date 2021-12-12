@@ -36,7 +36,31 @@ enum Lexeme {
 	octLiteral,
 	hexLiteral,
 	boolLiteral,
-	noneLiteral  // constant
+	noneLiteral,  // constant
+
+	// arithmetical operators
+	addOperator,
+	subOperator,
+	mulOperator,
+	divOperator,
+	intDivOperator,
+	modOperator,
+	raiseOperator,
+
+	// bitwise opperators
+	bitwiseNotOperator,
+	bitwiseAndOperator,
+	bitwiseOrOperator,
+	bitwiseXOrOperator,
+	bitwiseLeftShiftOperator,
+	bitwiseRightShiftOperator,
+
+	// logical operators
+	logicalNotOperator,
+	logicalAndOperator,
+	logicalOrOperator,
+
+	assignmentOperator
 }
 
 const constLexemes = {
@@ -65,10 +89,35 @@ const constLexemes = {
 	Lexeme.comma: ',',
 	Lexeme.colon: ':',
 
-	Lexeme.noneLiteral: 'None'
+	Lexeme.noneLiteral: 'None',
+
+	Lexeme.assignmentOperator: '=',
+
+	// arithmetical operators
+	Lexeme.addOperator: '+',
+	Lexeme.subOperator: '-',
+	Lexeme.mulOperator: '*',
+	Lexeme.divOperator: '/',
+	Lexeme.intDivOperator: '//',
+	Lexeme.modOperator: '%',
+	Lexeme.raiseOperator: '**',
+
+	// bitwise opperators
+	Lexeme.bitwiseNotOperator: '~',
+	Lexeme.bitwiseAndOperator: '&',
+	Lexeme.bitwiseOrOperator: '|',
+	Lexeme.bitwiseXOrOperator: '^',
+	Lexeme.bitwiseLeftShiftOperator: '<<',
+	Lexeme.bitwiseRightShiftOperator: '>>',
+
+	// logical operators
+	Lexeme.logicalNotOperator: 'not',
+	Lexeme.logicalAndOperator: 'and',
+	Lexeme.logicalOrOperator: 'or',
 };
 
 const nextCharDependentConstLexemes = [
+	// keywords
 	Lexeme.defKeyword,
 	Lexeme.returnKeyword,
 	Lexeme.passKeyword,
@@ -80,7 +129,13 @@ const nextCharDependentConstLexemes = [
 	Lexeme.whileKeyword,
 	Lexeme.continueKeyword,
 	Lexeme.breakKeyword,
-	Lexeme.noneLiteral
+
+	Lexeme.noneLiteral,
+
+	// logical operators
+	Lexeme.logicalNotOperator,
+	Lexeme.logicalAndOperator,
+	Lexeme.logicalOrOperator
 ];
 
 const numDelimiter = '_';
@@ -118,3 +173,47 @@ const closingBrackets = {
 	Lexeme.openingSquareBracket: Lexeme.closingSquareBracket,
 	Lexeme.openingBrace: Lexeme.closingBrace
 };
+
+const pureNextCharIndependentConstLexemes = [
+	// symbols
+	Lexeme.comma,
+	Lexeme.colon,
+
+	Lexeme.assignmentOperator,
+
+	// arithmetical operators
+	Lexeme.addOperator,
+	Lexeme.subOperator,
+	Lexeme.raiseOperator,
+	Lexeme.mulOperator,
+	Lexeme.intDivOperator,
+	Lexeme.divOperator,
+	Lexeme.modOperator,
+
+	// bitwise opperators
+	Lexeme.bitwiseNotOperator,
+	Lexeme.bitwiseAndOperator,
+	Lexeme.bitwiseOrOperator,
+	Lexeme.bitwiseXOrOperator,
+	Lexeme.bitwiseLeftShiftOperator,
+	Lexeme.bitwiseRightShiftOperator
+];
+
+// const assignmentCompatibleOperators = [
+// 	// arithmetical operators
+// 	Lexeme.addOperator,
+// 	Lexeme.subOperator,
+// 	Lexeme.raiseOperator,
+// 	Lexeme.mulOperator,
+// 	Lexeme.intDivOperator,
+// 	Lexeme.divOperator,
+// 	Lexeme.modOperator,
+
+// 	// bitwise opperators
+// 	Lexeme.bitwiseNotOperator,
+// 	Lexeme.bitwiseAndOperator,
+// 	Lexeme.bitwiseOrOperator,
+// 	Lexeme.bitwiseXOrOperator,
+// 	Lexeme.bitwiseLeftShiftOperator,
+// 	Lexeme.bitwiseRightShiftOperator,
+// ];

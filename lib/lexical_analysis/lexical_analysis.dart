@@ -164,20 +164,44 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 				// symbols
 
-				final comma = constLexemes[Lexeme.comma]!;
+				// final comma = constLexemes[Lexeme.comma]!;
 
-				if (line.startsWith(comma)) {
-					lexemes.add(Lexeme.comma);
-					line = line.afterLexeme(comma);
-					continue;
-				}
+				// if (line.startsWith(comma)) {
+				// 	lexemes.add(Lexeme.comma);
+				// 	line = line.afterLexeme(comma);
+				// 	continue;
+				// }
 
-				final colon = constLexemes[Lexeme.colon]!;
+				// final colon = constLexemes[Lexeme.colon]!;
 
-				if (line.startsWith(colon)) {
-					lexemes.add(Lexeme.colon);
-					line = line.afterLexeme(colon);
-					continue;
+				// if (line.startsWith(colon)) {
+				// 	lexemes.add(Lexeme.colon);
+				// 	line = line.afterLexeme(colon);
+				// 	continue;
+				// }
+
+				// for (final operator in assignmentCompatibleOperators) {
+				// 	final assignment = '${constLexemes[operator]}${constLexemes[Lexeme.assignmentOperator]}';
+
+				// 	if (line.startsWith(assignment)) {
+				// 		// todo: throw if what is before cannot be assigned to
+				// 		// otherwise, add lexemes:
+				// 		// Lexeme.assignmentOperator, [lexemes of what is before], operator
+
+				// 		// but turning these shortcut assignments into separate lexemes,
+				// 		// and leaving the validity test to the next compilation step,
+				// 		// seems to be a better option
+				// 	}
+				// }
+
+				for (final lexeme in pureNextCharIndependentConstLexemes) {
+					final lexemeString = constLexemes[lexeme]!;
+
+					if (line.startsWith(lexemeString)) {
+						lexemes.add(lexeme);
+						line = line.afterLexeme(lexemeString);
+						continue;
+					}
 				}
 
 				if (line.startsWith(statementDelimiter)) {
