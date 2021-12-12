@@ -68,7 +68,7 @@ extension Line on String {
 
 	/// The string without the [lexeme] at the beginning and possible spaces after it.
 	String afterLexeme(String lexeme) {
-		return replaceRange(0, lexeme.length, '').trimLeft();
+		return substring(lexeme.length).trimLeft();
 	}
 }
 
@@ -291,6 +291,17 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 
 					line = line.afterLexeme(strLiteralMatch.group(0)!);
 					continue;
+				}
+
+				// comment
+
+				if (line.startsWith(commentSymbol)) {
+					if (lexemes.last == Lexeme.indentation) {
+						lexemes.removeLast();
+						values.removeLast();
+					}
+
+					break;
 				}
 
 				// todo: handle recognizable invalid lexemes for better error messages

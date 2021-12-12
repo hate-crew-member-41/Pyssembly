@@ -2,6 +2,7 @@ import 'package:test/test.dart';
 
 import 'package:pyssembly/errors/indentation_error.dart' show IndentationError;
 import 'package:pyssembly/lexical_analysis/lexical_analysis.dart' show Line;
+import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, constLexemes;
 
 
 void main() {
@@ -81,6 +82,30 @@ void main() {
 					);
 				});
 			});
+		});
+	});
+
+	group('Prefix lexeme is removed', () {
+		test('with succeeding spaces', () {
+			String defKeyword = constLexemes[Lexeme.defKeyword]!;
+			expect(
+				'$defKeyword main():'.afterLexeme(defKeyword),
+				equals('main():')
+			);
+		});
+		test('without succeeding spaces', () {
+			String comma = constLexemes[Lexeme.comma]!;
+			expect(
+				'${comma}identifier'.afterLexeme(comma),
+				equals('identifier')
+			);
+		});
+		test('at the end', () {
+			String colon = constLexemes[Lexeme.colon]!;
+			expect(
+				colon.afterLexeme(colon),
+				equals('')
+			);
 		});
 	});
 }

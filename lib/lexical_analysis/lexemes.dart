@@ -83,8 +83,10 @@ const nextCharDependentConstLexemes = [
 	Lexeme.noneLiteral
 ];
 
-const statementDelimiter = ';';
 const numDelimiter = '_';
+const statementDelimiter = ';';
+const commentSymbol = '#';
+
 const decLiteralExpr = '\\d[0-9$numDelimiter]*';
 const trueLiteral = 'True';
 const nonIdentifierCharAfter = r'(?=\W|$)';
