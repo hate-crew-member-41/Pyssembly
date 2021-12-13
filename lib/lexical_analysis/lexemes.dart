@@ -60,6 +60,14 @@ enum Lexeme {
 	logicalAndOperator,
 	logicalOrOperator,
 
+	// comparison operators
+	equalsOperator,
+	notEqualsOperator,
+	greaterOperator,
+	lessOperator,
+	greaterOrEqualsOperator,
+	lessOrEqualsOperator,
+
 	assignmentOperator,
 
 	// arithmetical compound assignment operators
@@ -128,6 +136,14 @@ const constLexemes = {
 	Lexeme.bitwiseXOrOperator: '^',
 	Lexeme.bitwiseLeftShiftOperator: '<<',
 	Lexeme.bitwiseRightShiftOperator: '>>',
+
+	// comparison operators
+	Lexeme.equalsOperator: '==',
+	Lexeme.notEqualsOperator: '!=',
+	Lexeme.greaterOperator: '>',
+	Lexeme.lessOperator: '<',
+	Lexeme.greaterOrEqualsOperator: '>=',
+	Lexeme.lessOrEqualsOperator: '<=',
 
 	Lexeme.assignmentOperator: '=',
 
@@ -211,8 +227,6 @@ const pureNextCharIndependentConstLexemes = [
 	Lexeme.comma,
 	Lexeme.colon,
 
-	Lexeme.assignmentOperator,
-
 	// arithmetical compound assignment operators
 	Lexeme.addAssignmentOperator,
 	Lexeme.subAssignmentOperator,
@@ -244,5 +258,15 @@ const pureNextCharIndependentConstLexemes = [
 	Lexeme.bitwiseOrOperator,
 	Lexeme.bitwiseXOrOperator,
 	Lexeme.bitwiseLeftShiftOperator,
-	Lexeme.bitwiseRightShiftOperator
+	Lexeme.bitwiseRightShiftOperator,
+
+	// comparison operators
+	Lexeme.equalsOperator,
+	Lexeme.notEqualsOperator,
+	Lexeme.greaterOrEqualsOperator,
+	Lexeme.greaterOperator,
+	Lexeme.lessOrEqualsOperator,
+	Lexeme.lessOperator,
+
+	Lexeme.assignmentOperator,
 ];
