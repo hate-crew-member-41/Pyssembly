@@ -77,9 +77,11 @@ extension Indentations on List<int> {
 }
 
 
+typedef Lexemes = Tuple2<Queue<Lexeme>, Queue<Object>>;
+
 /// A [Queue<Lexeme>] of the lexemes of the code in the [file],
 /// and a [Queue<Object>] of the corresponding values for the variable ones.
-Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
+Future<Lexemes> lexemes(File file) async {
 	int lineNumber = 0;
 
 	final lines = file.openRead().map(utf8.decode).transform(const LineSplitter()).map((line) {
@@ -162,37 +164,7 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					}
 				}
 
-				// symbols
-
-				// final comma = constLexemes[Lexeme.comma]!;
-
-				// if (line.startsWith(comma)) {
-				// 	lexemes.add(Lexeme.comma);
-				// 	line = line.afterLexeme(comma);
-				// 	continue;
-				// }
-
-				// final colon = constLexemes[Lexeme.colon]!;
-
-				// if (line.startsWith(colon)) {
-				// 	lexemes.add(Lexeme.colon);
-				// 	line = line.afterLexeme(colon);
-				// 	continue;
-				// }
-
-				// for (final operator in assignmentCompatibleOperators) {
-				// 	final assignment = '${constLexemes[operator]}${constLexemes[Lexeme.assignmentOperator]}';
-
-				// 	if (line.startsWith(assignment)) {
-				// 		// todo: throw if what is before cannot be assigned to
-				// 		// otherwise, add lexemes:
-				// 		// Lexeme.assignmentOperator, [lexemes of what is before], operator
-
-				// 		// but turning these shortcut assignments into separate lexemes,
-				// 		// and leaving the validity test to the next compilation step,
-				// 		// seems to be a better option
-				// 	}
-				// }
+				// pure next-char-independent constant lexemes
 
 				for (final lexeme in pureNextCharIndependentConstLexemes) {
 					final lexemeString = constLexemes[lexeme]!;
@@ -200,17 +172,8 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					if (line.startsWith(lexemeString)) {
 						lexemes.add(lexeme);
 						line = line.afterLexeme(lexemeString);
-						continue;
+						continue handleLexeme;
 					}
-				}
-
-				if (line.startsWith(statementDelimiter)) {
-					line = line.afterLexeme(statementDelimiter);
-					if (line.isEmpty) continue;
-
-					// treat what follows as if written on a new line
-					lexemes.add(Lexeme.indentation);
-					values.add(indentations.level);
 				}
 
 				// number literals
@@ -328,9 +291,19 @@ Future<Tuple2<Queue<Lexeme>, Queue<Object>>> lexemes(File file) async {
 					break;
 				}
 
-				// todo: handle recognizable invalid lexemes for better error messages
+				// semicolon
 
-				// unknown lexeme
+				if (line.startsWith(statementDelimiter)) {
+					line = line.afterLexeme(statementDelimiter);
+					if (line.isEmpty) break;
+
+					// treat what follows as if written on a new line
+					lexemes.add(Lexeme.indentation);
+					values.add(indentations.level);
+				}
+
+				// todo: handle recognizable invalid lexemes e.g. tabs, for better error messages
+
 				throw SyntaxError.unknownLexeme();
 
 			}

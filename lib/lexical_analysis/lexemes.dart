@@ -60,7 +60,23 @@ enum Lexeme {
 	logicalAndOperator,
 	logicalOrOperator,
 
-	assignmentOperator
+	assignmentOperator,
+
+	// arithmetical compound assignment operators
+	addAssignmentOperator,
+	subAssignmentOperator,
+	mulAssignmentOperator,
+	divAssignmentOperator,
+	intDivAssignmentOperator,
+	modAssignmentOperator,
+	raiseAssignmentOperator,
+
+	// bitwise compound assignment opperators
+	bitwiseAndAssignmentOperator,
+	bitwiseOrAssignmentOperator,
+	bitwiseXOrAssignmentOperator,
+	bitwiseLeftShiftAssignmentOperator,
+	bitwiseRightShiftAssignmentOperator
 }
 
 const constLexemes = {
@@ -91,8 +107,6 @@ const constLexemes = {
 
 	Lexeme.noneLiteral: 'None',
 
-	Lexeme.assignmentOperator: '=',
-
 	// arithmetical operators
 	Lexeme.addOperator: '+',
 	Lexeme.subOperator: '-',
@@ -102,6 +116,11 @@ const constLexemes = {
 	Lexeme.modOperator: '%',
 	Lexeme.raiseOperator: '**',
 
+	// logical operators
+	Lexeme.logicalNotOperator: 'not',
+	Lexeme.logicalAndOperator: 'and',
+	Lexeme.logicalOrOperator: 'or',
+
 	// bitwise opperators
 	Lexeme.bitwiseNotOperator: '~',
 	Lexeme.bitwiseAndOperator: '&',
@@ -110,10 +129,23 @@ const constLexemes = {
 	Lexeme.bitwiseLeftShiftOperator: '<<',
 	Lexeme.bitwiseRightShiftOperator: '>>',
 
-	// logical operators
-	Lexeme.logicalNotOperator: 'not',
-	Lexeme.logicalAndOperator: 'and',
-	Lexeme.logicalOrOperator: 'or',
+	Lexeme.assignmentOperator: '=',
+
+	// arithmetical compound assignment operators
+	Lexeme.addAssignmentOperator: '+=',
+	Lexeme.subAssignmentOperator: '-=',
+	Lexeme.mulAssignmentOperator: '*=',
+	Lexeme.divAssignmentOperator: '/=',
+	Lexeme.intDivAssignmentOperator: '//=',
+	Lexeme.modAssignmentOperator: '%=',
+	Lexeme.raiseAssignmentOperator: '**=',
+
+	// bitwise compound assignment opperators
+	Lexeme.bitwiseAndAssignmentOperator: '&=',
+	Lexeme.bitwiseOrAssignmentOperator: '|=',
+	Lexeme.bitwiseXOrAssignmentOperator: '^=',
+	Lexeme.bitwiseLeftShiftAssignmentOperator: '<<=',
+	Lexeme.bitwiseRightShiftAssignmentOperator: '>>='
 };
 
 const nextCharDependentConstLexemes = [
@@ -181,6 +213,22 @@ const pureNextCharIndependentConstLexemes = [
 
 	Lexeme.assignmentOperator,
 
+	// arithmetical compound assignment operators
+	Lexeme.addAssignmentOperator,
+	Lexeme.subAssignmentOperator,
+	Lexeme.mulAssignmentOperator,
+	Lexeme.divAssignmentOperator,
+	Lexeme.intDivAssignmentOperator,
+	Lexeme.modAssignmentOperator,
+	Lexeme.raiseAssignmentOperator,
+
+	// bitwise compound assignment opperators
+	Lexeme.bitwiseAndAssignmentOperator,
+	Lexeme.bitwiseOrAssignmentOperator,
+	Lexeme.bitwiseXOrAssignmentOperator,
+	Lexeme.bitwiseLeftShiftAssignmentOperator,
+	Lexeme.bitwiseRightShiftAssignmentOperator,
+
 	// arithmetical operators
 	Lexeme.addOperator,
 	Lexeme.subOperator,
@@ -198,22 +246,3 @@ const pureNextCharIndependentConstLexemes = [
 	Lexeme.bitwiseLeftShiftOperator,
 	Lexeme.bitwiseRightShiftOperator
 ];
-
-// const assignmentCompatibleOperators = [
-// 	// arithmetical operators
-// 	Lexeme.addOperator,
-// 	Lexeme.subOperator,
-// 	Lexeme.raiseOperator,
-// 	Lexeme.mulOperator,
-// 	Lexeme.intDivOperator,
-// 	Lexeme.divOperator,
-// 	Lexeme.modOperator,
-
-// 	// bitwise opperators
-// 	Lexeme.bitwiseNotOperator,
-// 	Lexeme.bitwiseAndOperator,
-// 	Lexeme.bitwiseOrOperator,
-// 	Lexeme.bitwiseXOrOperator,
-// 	Lexeme.bitwiseLeftShiftOperator,
-// 	Lexeme.bitwiseRightShiftOperator,
-// ];
