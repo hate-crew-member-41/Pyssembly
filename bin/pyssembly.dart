@@ -12,8 +12,8 @@ void main(List<String> arguments) async {
 			var file = File(path);
 
 			if (await file.exists()) {
-				print("Compiling \"$path\"");
-				compile(file);
+				print("\nCompiling \"$path\"");
+				await compile(file);
 			}
 			else {
 				print("The file \"$path\" does not exist");
@@ -22,4 +22,5 @@ void main(List<String> arguments) async {
 	}
 }
 
-const help = "Compile Python code to Assembly (MASM 32-bit).\nUsage: pyssembly [files]";
+const help = "\nCompile Python code to Assembly (MASM 32-bit).\n"
+"Usage: pyssembly <files> [-i]\n";

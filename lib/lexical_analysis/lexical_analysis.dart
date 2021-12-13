@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:stack/stack.dart';
-import 'package:tuple/tuple.dart';
+import 'package:tuple/tuple.dart' show Tuple2;
 
 import 'package:pyssembly/errors/bracket_error.dart';
 import 'package:pyssembly/errors/compilation_error.dart';
@@ -80,7 +80,7 @@ extension Indentations on List<int> {
 typedef Lexemes = Tuple2<Queue<Lexeme>, Queue<Object>>;
 
 /// A [Queue<Lexeme>] of the lexemes of the code in the [file],
-/// and a [Queue<Object>] of the corresponding values for the variable ones.
+/// and a [Queue<Object>] of values of the variable ones.
 Future<Lexemes> lexemes(File file) async {
 	int lineNumber = 0;
 
@@ -99,7 +99,7 @@ Future<Lexemes> lexemes(File file) async {
 		await for (String line in lines) {
 			if (line.isEmpty) continue;
 
-			// todo: or the previous line was ended with '\'
+			// todo: also consider '\' and multiline string literals
 			if (brackets.isEmpty) {
 				final indentationChange_ = line.indentationChange(indentations);
 				
