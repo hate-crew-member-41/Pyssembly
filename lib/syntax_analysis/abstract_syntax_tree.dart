@@ -58,8 +58,14 @@ statement(Queue<Lexeme> lexemes, Queue<Object> values) {
 		final second = lexemes.removeFirst();
 
 		if (assignmentOperators.contains(second)) {
-			// todo: add compound assignments and expressions
-			return Assignment(values.removeFirst() as String, expression(lexemes, values));
+			// todo: add compound assignments
+			final statement = Assignment(values.removeFirst() as String, expression(lexemes, values));
+
+			if (lexemes.isNotEmpty) {
+				throw SyntaxError.unexpectedLexeme(constLexemes[lexemes.first] ?? values.removeFirst() as String);
+			}
+
+			return statement;
 		}
 	}
 
