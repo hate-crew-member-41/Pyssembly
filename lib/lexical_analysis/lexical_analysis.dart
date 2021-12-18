@@ -308,10 +308,6 @@ Future<Lexemes> lexemes(File file) async {
 
 			}
 		}
-
-		if (brackets.isNotEmpty) {
-			throw BracketError.closingExpected(closingBrackets[brackets.pop()]!);
-		}
 	}
 	on CompilationError catch (error) {
 		error.file = file;

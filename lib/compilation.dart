@@ -25,6 +25,6 @@ Future<void> compile(File file) async {
 	}
 	finally {
 		compilationWatch.stop();
-		print("\tTotal compilation time: ${compilationWatch.elapsedMilliseconds} ms");
+		print("\ttotal compilation time: ${compilationWatch.elapsedMilliseconds} ms");
 	}
 }

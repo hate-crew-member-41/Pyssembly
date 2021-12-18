@@ -4,8 +4,9 @@ import 'dart:io';
 class CompilationError extends Error {
 	CompilationError(this.message);
 
-	late final File file;
-	late final int lineNumber;
+	// todo: remove default values and make the fields private, rewrite the error mechanism
+	File file = File('{default}');
+	int lineNumber = 0;
 	final String message;
 
 	@override

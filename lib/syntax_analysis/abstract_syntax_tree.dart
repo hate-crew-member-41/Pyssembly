@@ -4,14 +4,21 @@ import 'package:tuple/tuple.dart' show Tuple2;
 
 import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, constLexemes;
 
+import 'package:pyssembly/errors/syntax_error.dart';
+
+import 'grammar_rules.dart';
+import 'expression.dart';
+import 'statements.dart';
+
 
 /// The abstract syntax tree built from the [lexemes].
+// todo: specify the type
 abstractSyntaxTree(Queue<Lexeme> lexemes, Queue<Object> values) {
-	final statements_ = statements(lexemes, values);
+	final statements_ = statementBlocks(lexemes, values);
 }
 
-List<Object> statements(Queue<Lexeme> lexemes, Queue<Object> values, [int blockLevel = 0]) {
-	final statements_ = <Object>[];
+List<Object> statementBlocks(Queue<Lexeme> lexemes, Queue<Object> values, [int blockLevel = 0]) {
+	final statements = <Object>[];
 
 	while (lexemes.isNotEmpty) {
 		final statementLevel = values.first as int;
@@ -20,25 +27,45 @@ List<Object> statements(Queue<Lexeme> lexemes, Queue<Object> values, [int blockL
 			lexemes.removeFirst();
 			values.removeFirst();
 
-			// todo: lists?
-			final statement = Tuple2(<Lexeme>[], <Object>[]);
+			final statementLexemes = Queue<Lexeme>();
+			final statementValues = Queue<Object>();
 
 			while (lexemes.isNotEmpty && lexemes.first != Lexeme.indentation) {
 				final lexeme = lexemes.removeFirst();
-				statement.item1.add(lexeme);
+				statementLexemes.add(lexeme);
 
 				if (!constLexemes.containsKey(lexeme)) {
-					statement.item2.add(values.removeFirst());
+					statementValues.add(values.removeFirst());
 				}
 			}
 
-			statements_.add(statement);
+			statements.add(statement(statementLexemes, statementValues));
 		}
 		else if (statementLevel > blockLevel) {
-			statements_.add(statements(lexemes, values, statementLevel));
+			statements.add(statementBlocks(lexemes, values, statementLevel));
 		}
-		else return statements_;
+		else return statements;
 	}
 
-	return statements_;
+	return statements;
+}
+
+// todo; specify the type
+statement(Queue<Lexeme> lexemes, Queue<Object> values) {
+	final first = lexemes.removeFirst();
+
+	if (first == Lexeme.identifier) {
+		final second = lexemes.removeFirst();
+
+		if (assignmentOperators.contains(second)) {
+			// todo: add compound assignments and expressions
+			return Assignment(values.removeFirst() as String, expression(lexemes, values));
+		}
+	}
+
+	if (first == Lexeme.ifKeyword) {
+
+	}
+
+	throw SyntaxError.statementExpected();
 }
