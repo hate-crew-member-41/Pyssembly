@@ -1,57 +1,5 @@
-import 'dart:collection';
-
-import 'package:pyssembly/errors/bracket_error.dart';
-import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, closingBrackets;
+import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
-
-import 'package:pyssembly/errors/syntax_error.dart';
-
-import 'grammar_rules.dart';
-
-
-Object expression(Queue<PositionedLexeme> lexemes, lineNum) {
-	Object expr = operand(lexemes, lineNum);
-
-	while (lexemes.isNotEmpty && operators.contains(lexemes.first.lexeme)) {
-		final lexeme = lexemes.removeFirst();
-
-		if (!operators.contains(lexeme.lexeme)) {
-			throw SyntaxError.unexpectedLexeme(lexeme);
-		}
-
-		expr = Expression(expr, operand(lexemes, lexeme.lineNum), lexeme.lexeme);
-	}
-
-	return expr;
-}
-
-Object operand(Queue<PositionedLexeme> lexemes, int lineNum) {
-	if (lexemes.isEmpty) {
-		throw SyntaxError.operandExpected(lineNum);
-	}
-
-	final lexeme = lexemes.removeFirst();
-
-	if (operands.contains(lexeme.lexeme)) return lexeme;
-
-	if (lexeme.lexeme == Lexeme.openingParenthesis) {
-		final lastOperandLineNum = lexemes.last.lineNum;
-		final expr = expression(lexemes, lexeme.lineNum);
-
-		if (lexemes.isEmpty) {
-			throw BracketError.closingExpected(closingBrackets[lexeme.lexeme]!, lastOperandLineNum);
-		}
-
-		lexemes.removeFirst();
-		return expr;
-	}
-
-	if (unaryOperators.contains(lexeme.lexeme)) {
-		return OneOperandExpression(operand(lexemes, lexeme.lineNum), lexeme);
-	}
-
-	throw SyntaxError.unexpectedLexeme(lexeme);
-}
 
 
 class Expression {
@@ -69,3 +17,71 @@ class OneOperandExpression {
 
 	OneOperandExpression(this.operand, this.operation);
 }
+
+
+const assignmentOperators = {
+	Lexeme.assignmentOperator,
+
+	// arithmetical compound assignment operators
+	Lexeme.addAssignmentOperator,
+	Lexeme.subAssignmentOperator,
+	Lexeme.mulAssignmentOperator,
+	Lexeme.divAssignmentOperator,
+	Lexeme.intDivAssignmentOperator,
+	Lexeme.modAssignmentOperator,
+	Lexeme.raiseAssignmentOperator,
+
+	// bitwise compound assignment opperators
+	Lexeme.bitwiseAndAssignmentOperator,
+	Lexeme.bitwiseOrAssignmentOperator,
+	Lexeme.bitwiseXOrAssignmentOperator,
+	Lexeme.bitwiseLeftShiftAssignmentOperator,
+	Lexeme.bitwiseRightShiftAssignmentOperator
+};
+
+const operators = {
+	// arithmetical operators
+	Lexeme.addOperator,
+	Lexeme.subOperator,
+	Lexeme.mulOperator,
+	Lexeme.divOperator,
+	Lexeme.intDivOperator,
+	Lexeme.modOperator,
+	Lexeme.raiseOperator,
+
+	// bitwise opperators
+	Lexeme.bitwiseAndOperator,
+	Lexeme.bitwiseOrOperator,
+	Lexeme.bitwiseXOrOperator,
+	Lexeme.bitwiseLeftShiftOperator,
+	Lexeme.bitwiseRightShiftOperator,
+
+	// logical operators
+	Lexeme.logicalAndOperator,
+	Lexeme.logicalOrOperator,
+
+	// comparison operators
+	Lexeme.equalsOperator,
+	Lexeme.notEqualsOperator,
+	Lexeme.greaterOperator,
+	Lexeme.lessOperator,
+	Lexeme.greaterOrEqualsOperator,
+	Lexeme.lessOrEqualsOperator
+};
+
+const unaryOperators = {
+	Lexeme.addOperator,
+	Lexeme.subOperator,
+	Lexeme.bitwiseNotOperator,
+	Lexeme.logicalNotOperator
+};
+
+const operands = {
+	Lexeme.identifier,
+	Lexeme.decLiteral,
+	Lexeme.floatLiteral,
+	Lexeme.binLiteral,
+	Lexeme.octLiteral,
+	Lexeme.hexLiteral,
+	Lexeme.boolLiteral
+};

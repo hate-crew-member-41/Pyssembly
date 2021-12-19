@@ -84,8 +84,7 @@ extension on List<int> {
 }
 
 
-/// A [Queue<Lexeme>] of the lexemes of the code in the [file],
-/// and a [Queue<Object>] of values of the variable ones.
+/// A [Queue<PositionedLexeme>] of the lexemes of the code in the [file].
 Future<Queue<PositionedLexeme>> lexemes(File file) async {
 	int lineNum = 0;
 
