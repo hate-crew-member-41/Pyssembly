@@ -3,9 +3,12 @@ import 'compilation_error.dart' show CompilationError;
 
 
 class BracketError extends CompilationError {
-	BracketError.closingExpected(Lexeme expected) : super("closing bracket '${constLexemes[expected]}' expected");
+	BracketError.closingExpected(Lexeme expected, int lineNum) :
+		super("closing bracket '${constLexemes[expected]}' expected", lineNum);
 
-	BracketError.unexpectedClosing(Lexeme bracket) : super("unexpected closing bracket '${constLexemes[bracket]}'");
+	BracketError.unexpectedClosing(Lexeme bracket) :
+		super("unexpected closing bracket '${constLexemes[bracket]}'");
 
-	BracketError.wrongClosing(Lexeme expected) : super("wrong closing bracket, '${constLexemes[expected]}' expected");
+	BracketError.wrongClosing(Lexeme expected) :
+		super("wrong closing bracket, '${constLexemes[expected]}' expected");
 }

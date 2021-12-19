@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:stack/stack.dart';
-import 'package:tuple/tuple.dart' show Tuple2;
 
 import 'package:pyssembly/errors/bracket_error.dart';
 import 'package:pyssembly/errors/compilation_error.dart';
@@ -11,6 +10,7 @@ import 'package:pyssembly/errors/indentation_error.dart';
 import 'package:pyssembly/errors/syntax_error.dart';
 
 import 'lexemes.dart';
+import 'positioned_lexeme.dart';
 
 
 extension Line on String {
@@ -36,10 +36,9 @@ extension Line on String {
 	}
 
 	/// The bracket of the [opening] bracket's family at the beginning of the string.
-	Lexeme? handleBracket(Lexeme opening, Stack<Lexeme> brackets, Queue<Lexeme> lexemes) {
+	Lexeme? handleBracket(Lexeme opening, Stack<Lexeme> brackets) {
 		if (startsWith(constLexemes[opening]!)) {
 			brackets.push(opening);
-			lexemes.add(opening);
 			return opening;
 		}
 
@@ -56,7 +55,6 @@ extension Line on String {
 				throw BracketError.wrongClosing(closingBrackets[lastOpening]!);
 			}
 
-			lexemes.add(closing);
 			return closing;
 		}
 	}
@@ -66,64 +64,69 @@ extension Line on String {
 		return lexemeExprs[lexeme]!.matchAsPrefix(this);
 	}
 
+	/// The number literal without delimiters.
+	String get withoutNumDelimiters => replaceAll(numDelimiter, '');
+
 	/// The string without the [lexeme] at the beginning and possible spaces after it.
 	String afterLexeme(String lexeme) {
 		return substring(lexeme.length).trimLeft();
 	}
 }
 
-extension Indentations on List<int> {
+extension on Queue<PositionedLexeme> {
+	void addLexeme(int lineNum, Lexeme lexeme, [Object? value]) {
+		add(PositionedLexeme(lineNum, lexeme, value));
+	}
+}
+
+extension on List<int> {
 	int get level => length - 1;
 }
 
 
-typedef Lexemes = Tuple2<Queue<Lexeme>, Queue<Object>>;
-
 /// A [Queue<Lexeme>] of the lexemes of the code in the [file],
 /// and a [Queue<Object>] of values of the variable ones.
-Future<Lexemes> lexemes(File file) async {
-	int lineNumber = 0;
+Future<Queue<PositionedLexeme>> lexemes(File file) async {
+	int lineNum = 0;
 
 	final lines = file.openRead().map(utf8.decode).transform(const LineSplitter()).map((line) {
-		lineNumber++;
+		lineNum++;
 		return line.trimRight();
 	});
 
-	final lexemes = Queue<Lexeme>();
-	final values = Queue<Object>();
+	final lexemes = Queue<PositionedLexeme>();
 
 	final indentations = [0];
 	final brackets = Stack<Lexeme>();
 
-	try {
-		await for (String line in lines) {
-			if (line.isEmpty) continue;
+	await for (String line in lines) {
+		if (line.isEmpty) continue;
 
-			// todo: also consider '\' and multiline string literals
-			if (brackets.isEmpty) {
-				final indentationChange_ = line.indentationChange(indentations);
-				
-				if (indentationChange_ > 0) {
-					indentations.add(indentations.last + indentationChange_);
-				}
-
-				if (indentationChange_ < 0) {
-					indentations.removeRange(indentations.length + indentationChange_, indentations.length);
-				}
-
-				lexemes.add(Lexeme.indentation);
-				values.add(indentations.level);
+		// todo: also consider '\' and multiline string literals
+		if (brackets.isEmpty) {
+			final indentationChange_ = line.indentationChange(indentations);
+			
+			if (indentationChange_ > 0) {
+				indentations.add(indentations.last + indentationChange_);
 			}
 
-			line = line.trimLeft();
+			if (indentationChange_ < 0) {
+				indentations.removeRange(indentations.length + indentationChange_, indentations.length);
+			}
 
+			lexemes.addLexeme(lineNum, Lexeme.indentation, indentations.level);
+		}
+
+		line = line.trimLeft();
+
+		try {
 			// todo: think about the order to make each iteration the cheapest possible
 			handleLexeme: while (line.isNotEmpty) {
 				// next-char-dependent constant lexemes and bool literal
 
 				for (final lexeme in nextCharDependentConstLexemes) {
 					if (line.startsWith(lexemeExprs[lexeme]!)) {
-						lexemes.add(lexeme);
+						lexemes.addLexeme(lineNum, lexeme);
 						line = line.afterLexeme(constLexemes[lexeme]!);
 						continue handleLexeme;
 					}
@@ -132,8 +135,7 @@ Future<Lexemes> lexemes(File file) async {
 				final boolLiteral = line.varLexemeMatch(Lexeme.boolLiteral)?.group(0);
 
 				if (boolLiteral != null) {
-					lexemes.add(Lexeme.boolLiteral);
-					values.add(boolLiteral == trueLiteral);
+					lexemes.addLexeme(lineNum, Lexeme.boolLiteral, boolLiteral == trueLiteral);
 					line = line.afterLexeme(boolLiteral);
 					continue;
 				}
@@ -146,19 +148,19 @@ Future<Lexemes> lexemes(File file) async {
 					if (identifier.startsWith(lexemeExprs[Lexeme.decLiteral]!)) {
 						throw SyntaxError.invalidIdentifier();
 					}
-	
-					lexemes.add(Lexeme.identifier);
+
+					lexemes.addLexeme(lineNum, Lexeme.identifier, identifier);
 					line = line.afterLexeme(identifier);
-					values.add(identifier);
 					continue;
 				}
 
 				// brackets
 
 				for (final openingBracket in closingBrackets.keys) {
-					final bracket = line.handleBracket(openingBracket, brackets, lexemes);
+					final bracket = line.handleBracket(openingBracket, brackets);
 
 					if (bracket != null) {
+						lexemes.addLexeme(lineNum, bracket);
 						line = line.afterLexeme(constLexemes[bracket]!);
 						continue handleLexeme;
 					}
@@ -170,7 +172,7 @@ Future<Lexemes> lexemes(File file) async {
 					final lexemeString = constLexemes[lexeme]!;
 
 					if (line.startsWith(lexemeString)) {
-						lexemes.add(lexeme);
+						lexemes.addLexeme(lineNum, lexeme);
 						line = line.afterLexeme(lexemeString);
 						continue handleLexeme;
 					}
@@ -187,8 +189,7 @@ Future<Lexemes> lexemes(File file) async {
 						throw SyntaxError.invalidNum('binary');
 					}
 
-					lexemes.add(Lexeme.binLiteral);
-					values.add(literal.replaceAll(numDelimiter, ''));
+					lexemes.addLexeme(lineNum, Lexeme.binLiteral, literal.withoutNumDelimiters);
 					line = line.afterLexeme(binLiteralMatch.group(0)!);
 					continue;
 				}
@@ -202,8 +203,7 @@ Future<Lexemes> lexemes(File file) async {
 						throw SyntaxError.invalidNum('octal');
 					}
 
-					lexemes.add(Lexeme.octLiteral);
-					values.add(literal.replaceAll(numDelimiter, ''));
+					lexemes.addLexeme(lineNum, Lexeme.octLiteral, literal.withoutNumDelimiters);
 					line = line.afterLexeme(octLiteralMatch.group(0)!);
 					continue;
 				}
@@ -217,8 +217,7 @@ Future<Lexemes> lexemes(File file) async {
 						throw SyntaxError.invalidNum('hexadecimal');
 					}
 
-					lexemes.add(Lexeme.hexLiteral);
-					values.add(literal.replaceAll(numDelimiter, '').toLowerCase());
+					lexemes.addLexeme(lineNum, Lexeme.hexLiteral, literal.withoutNumDelimiters.toLowerCase());
 					line = line.afterLexeme(hexLiteralMatch.group(0)!);
 					continue;
 				}
@@ -234,8 +233,7 @@ Future<Lexemes> lexemes(File file) async {
 					}
 
 					final literal = floatLiteralMatch.group(0)!;
-					lexemes.add(Lexeme.floatLiteral);
-					values.add(literal.replaceAll(numDelimiter, ''));
+					lexemes.addLexeme(lineNum, Lexeme.floatLiteral, literal.withoutNumDelimiters);
 					line = line.afterLexeme(literal);
 					continue;
 				}
@@ -247,8 +245,7 @@ Future<Lexemes> lexemes(File file) async {
 						throw SyntaxError.invalidNum('decimal');
 					}
 
-					lexemes.add(Lexeme.decLiteral);
-					values.add(decLiteral.replaceAll(numDelimiter, ''));
+					lexemes.addLexeme(lineNum, Lexeme.decLiteral, decLiteral.withoutNumDelimiters);
 					line = line.afterLexeme(decLiteral);
 					continue;
 				}
@@ -270,12 +267,11 @@ Future<Lexemes> lexemes(File file) async {
 						value = value.replaceAll('\\$char', char);
 					}
 
-					if (lexemes.last != Lexeme.strLiteral) {
-						lexemes.add(Lexeme.strLiteral);
-						values.add(value);
+					if (lexemes.last.lexeme == Lexeme.strLiteral) {
+						value = (lexemes.removeLast().value as String) + value;
 					}
-					else values.add((values.removeLast() as String) + value);
 
+					lexemes.addLexeme(lineNum, Lexeme.strLiteral, value);
 					line = line.afterLexeme(strLiteralMatch.group(0)!);
 					continue;
 				}
@@ -283,9 +279,8 @@ Future<Lexemes> lexemes(File file) async {
 				// comment
 
 				if (line.startsWith(commentSymbol)) {
-					if (lexemes.last == Lexeme.indentation) {
+					if (lexemes.last.lexeme == Lexeme.indentation) {
 						lexemes.removeLast();
-						values.removeLast();
 					}
 
 					break;
@@ -298,8 +293,7 @@ Future<Lexemes> lexemes(File file) async {
 					if (line.isEmpty) break;
 
 					// treat what follows as if written on a new line
-					lexemes.add(Lexeme.indentation);
-					values.add(indentations.level);
+					lexemes.addLexeme(lineNum, Lexeme.indentation, indentations.level);
 				}
 
 				// todo: handle recognizable invalid lexemes e.g. tabs, for better error messages
@@ -308,12 +302,11 @@ Future<Lexemes> lexemes(File file) async {
 
 			}
 		}
-	}
-	on CompilationError catch (error) {
-		error.file = file;
-		error.lineNumber = lineNumber;
-		rethrow;
+		on CompilationError catch (error) {
+			error.lineNum = lineNum;
+			rethrow;
+		}
 	}
 
-	return Tuple2(lexemes, values);
+	return lexemes;
 }

@@ -1,20 +1,30 @@
-import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme;
-
+import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 import 'compilation_error.dart';
 
 
 class SyntaxError extends CompilationError {
-	SyntaxError.invalidNum(String system) : super("invalid $system literal");
+	// lexical-analysis errors
 
-	SyntaxError.invalidIdentifier() : super("identifier starts with a digit");
+	SyntaxError.invalidNum(String system) :
+		super("invalid $system literal");
 
-	SyntaxError.unterminatedStr() : super("unterminated string literal");
+	SyntaxError.invalidIdentifier() :
+		super("identifier starts with a digit");
 
-	SyntaxError.unknownLexeme() : super("unknown lexeme");
+	SyntaxError.unterminatedStr() :
+		super("unterminated string literal");
 
-	SyntaxError.operandExpected() : super("operand expected");
+	SyntaxError.unknownLexeme() :
+		super("unknown lexeme");
 
-	SyntaxError.unexpectedLexeme(String lexeme) : super('unexpected lexeme "$lexeme"');
+	// syntax-analysis errors
 
-	SyntaxError.statementExpected() : super("statement expected");
+	SyntaxError.operandExpected(int lineNum) :
+		super("operand expected", lineNum);
+
+	SyntaxError.unexpectedLexeme(PositionedLexeme lexeme) :
+		super('unexpected lexeme "$lexeme"', lexeme.lineNum);
+
+	SyntaxError.statementExpected(int lineNum) :
+		super("statement expected", lineNum);
 }

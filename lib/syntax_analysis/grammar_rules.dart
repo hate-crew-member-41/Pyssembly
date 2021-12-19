@@ -21,17 +21,7 @@ const assignmentOperators = {
 	Lexeme.bitwiseRightShiftAssignmentOperator
 };
 
-const operands = {
-	Lexeme.identifier,
-	Lexeme.decLiteral,
-	Lexeme.floatLiteral,
-	Lexeme.binLiteral,
-	Lexeme.octLiteral,
-	Lexeme.hexLiteral,
-	Lexeme.boolLiteral
-};
-
-const nonAssignmentOperators = {
+const operators = {
 	// arithmetical operators
 	Lexeme.addOperator,
 	Lexeme.subOperator,
@@ -42,7 +32,6 @@ const nonAssignmentOperators = {
 	Lexeme.raiseOperator,
 
 	// bitwise opperators
-	Lexeme.bitwiseNotOperator,
 	Lexeme.bitwiseAndOperator,
 	Lexeme.bitwiseOrOperator,
 	Lexeme.bitwiseXOrOperator,
@@ -50,7 +39,6 @@ const nonAssignmentOperators = {
 	Lexeme.bitwiseRightShiftOperator,
 
 	// logical operators
-	Lexeme.logicalNotOperator,
 	Lexeme.logicalAndOperator,
 	Lexeme.logicalOrOperator,
 
@@ -68,4 +56,14 @@ const unaryOperators = {
 	Lexeme.subOperator,
 	Lexeme.bitwiseNotOperator,
 	Lexeme.logicalNotOperator
+};
+
+const operands = {
+	Lexeme.identifier,
+	Lexeme.decLiteral,
+	Lexeme.floatLiteral,
+	Lexeme.binLiteral,
+	Lexeme.octLiteral,
+	Lexeme.hexLiteral,
+	Lexeme.boolLiteral
 };

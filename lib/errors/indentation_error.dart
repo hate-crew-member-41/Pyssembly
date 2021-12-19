@@ -6,5 +6,6 @@ class IndentationError extends CompilationError {
 
 	// IndentationError.unexpectedIndentation() : super("unexpected indentaion");
 
-	IndentationError.noMatch() : super("indentaion does not match");
+	IndentationError.noMatch() :
+		super("indentaion does not match");
 }

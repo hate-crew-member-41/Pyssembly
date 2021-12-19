@@ -14,10 +14,10 @@ Future<void> compile(File file) async {
 		final watch = Stopwatch()..start();
 		final lexemes_ = await lexemes(file);
 
-		print("\tlexical analysis (${watch.elapsedMilliseconds} ms): ${lexemes_.item1.length} lexemes");
+		print("\tlexical analysis (${watch.elapsedMilliseconds} ms): ${lexemes_.length} lexemes");
 
 		watch.reset();
-		abstractSyntaxTree(lexemes_.item1, lexemes_.item2);
+		abstractSyntaxTree(lexemes_);
 		print("\tsyntax analysis (${watch.elapsedMilliseconds} ms)");
 	}
 	on CompilationError catch (error) {
