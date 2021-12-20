@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, constLexemes, closingBrackets;
+import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, constLexemes;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 
 import 'package:pyssembly/errors/syntax_error.dart';
@@ -80,9 +80,25 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 		throw SyntaxError.unexpectedLexeme(lexemes.first);
 	}
 
-	// if (first == Lexeme.ifKeyword) {
-		
-	// }
+	if (lexemes.first.lexeme == Lexeme.ifKeyword) {
+		lexemes.removeFirst();
+		final lastOperandLineNum = lexemes.last.lineNum;
+		final condition = expression(lexemes);
+
+		if (condition == null) throw SyntaxError.exprExpected(lineNum);
+		if (lexemes.isEmpty || lexemes.first.lexeme != Lexeme.colon) {
+			throw SyntaxError.colonExpected(lastOperandLineNum);
+		}
+
+		lexemes.removeFirst();
+		Object? body;
+
+		if (lexemes.isNotEmpty) {
+			body = statement(lexemes);
+		}
+
+		return If(condition, body);
+	}
 
 	throw SyntaxError.statementExpected(lineNum);
 }
@@ -97,9 +113,6 @@ Object? expression(Queue<PositionedLexeme> lexemes) {
 		final operand_ = operand(lexemes);
 
 		if (operand_ == null) throw SyntaxError.operandExpected(operator.lineNum);
-		// if (!operators.contains(posLexeme.lexeme)) {
-		// 	throw SyntaxError.unexpectedLexeme(posLexeme);
-		// }
 
 		expr = TwoOperandExpression(expr!, operand_, operator.lexeme);
 	}
@@ -110,14 +123,16 @@ Object? expression(Queue<PositionedLexeme> lexemes) {
 Object? operand(Queue<PositionedLexeme> lexemes) {
 	if (lexemes.isEmpty) return null;
 
-	final posLexeme = lexemes.removeFirst();
+	// final posLexeme = lexemes.removeFirst();
 
-	if (operands.contains(posLexeme.lexeme)) {
-		if (posLexeme.lexeme == Lexeme.identifier) {
-			if (lexemes.isEmpty || lexemes.first.lexeme != Lexeme.openingParenthesis) {
-				return posLexeme;
-			}
+	if (operands.contains(lexemes.first.lexeme)) {
+		final operand = lexemes.removeFirst();
 
+		if (
+			operand.lexeme == Lexeme.identifier &&
+			lexemes.isNotEmpty &&
+			lexemes.first.lexeme == Lexeme.openingParenthesis
+		) {
 			final lastLexemeLineNum = lexemes.last.lineNum;
 			lexemes.removeFirst();
 			final args = Queue<Object>();
@@ -129,7 +144,7 @@ Object? operand(Queue<PositionedLexeme> lexemes) {
 
 				if (lexemes.first.lexeme == Lexeme.closingParenthesis) {
 					lexemes.removeFirst();
-					return Call(posLexeme.value as String, args);
+					return Call(operand.value as String, args);
 				}
 
 				args.add(expression(lexemes)!);
@@ -137,28 +152,29 @@ Object? operand(Queue<PositionedLexeme> lexemes) {
 			}
 		}
 
-		return posLexeme;
+		return operand;
 	}
 
-	if (posLexeme.lexeme == Lexeme.openingParenthesis) {
-		final lastOperandLineNum = lexemes.last.lineNum;
+	if (lexemes.first.lexeme == Lexeme.openingParenthesis) {
+		int openingLineNum = lexemes.removeFirst().lineNum;
 		final expr = expression(lexemes);
 
+		if (expr == null) throw SyntaxError.exprExpected(openingLineNum);
+
 		if (lexemes.isEmpty) {
-			throw BracketError.closingExpected(closingBrackets[posLexeme.lexeme]!, lastOperandLineNum);
+			throw BracketError.closingExpected(Lexeme.closingParenthesis, openingLineNum);
 		}
 
 		lexemes.removeFirst();
 		return expr;
 	}
 
-	if (unaryOperators.contains(posLexeme.lexeme)) {
+	if (unaryOperators.contains(lexemes.first.lexeme)) {
+		final operator = lexemes.removeFirst();
 		final operand_ = operand(lexemes);
 
-		if (operand_ == null) throw SyntaxError.operandExpected(posLexeme.lineNum);
+		if (operand_ == null) throw SyntaxError.operandExpected(operator.lineNum);
 
-		return OneOperandExpression(operand_, posLexeme.lexeme);
+		return OneOperandExpression(operand_, operator.lexeme);
 	}
-
-	throw SyntaxError.unexpectedLexeme(posLexeme);
 }

@@ -93,5 +93,6 @@ const operands = {
 	Lexeme.octLiteral,
 	Lexeme.hexLiteral,
 	Lexeme.boolLiteral,
+	Lexeme.noneLiteral,
 	Lexeme.strLiteral
 };

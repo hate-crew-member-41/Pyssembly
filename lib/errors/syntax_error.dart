@@ -23,13 +23,16 @@ class SyntaxError extends CompilationError {
 		super("operand expected", lineNum);
 
 	SyntaxError.unexpectedLexeme(PositionedLexeme lexeme) :
-		super('unexpected lexeme "$lexeme"', lexeme.lineNum);
+		super("unexpected lexeme '$lexeme'", lexeme.lineNum);
 	
 	SyntaxError.invalidAssignmentTarget(int lineNum) :
-		super('invalid assignment target', lineNum);
+		super("invalid assignment target", lineNum);
 	
 	SyntaxError.exprExpected(int lineNum) :
-		super('expression expected', lineNum);
+		super("expression expected", lineNum);
+	
+	SyntaxError.colonExpected(int lineNum) :
+		super("':' expected", lineNum);
 
 	SyntaxError.statementExpected(int lineNum) :
 		super("statement expected", lineNum);
