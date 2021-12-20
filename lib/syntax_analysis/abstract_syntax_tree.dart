@@ -1,6 +1,6 @@
 import 'dart:collection';
 
-import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, closingBrackets;
+import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, constLexemes, closingBrackets;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 
 import 'package:pyssembly/errors/syntax_error.dart';
@@ -50,7 +50,18 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 
 		if (assignmentOperators.contains(second.lexeme)) {
 			// todo: add compound assignments
-			final statement = Assignment(first.value as String, expression(lexemes, second.lineNum));
+			var expr = expression(lexemes, second.lineNum);
+
+			if (second.lexeme != Lexeme.assignmentOperator) {
+				final compoundAssignment = constLexemes[second.lexeme]!;
+				final assignmentLength = constLexemes[Lexeme.assignmentOperator]!.length;
+				final operatorCode = compoundAssignment.substring(0, compoundAssignment.length - assignmentLength);
+
+				final operation = constLexemes.entries.firstWhere((lexeme) => lexeme.value == operatorCode).key;
+				expr = TwoOperandExpression(first, expr, operation);
+			}
+
+			final statement = Assignment(first.value as String, expr);
 
 			if (lexemes.isNotEmpty) {
 				throw SyntaxError.unexpectedLexeme(lexemes.first);
