@@ -24,6 +24,12 @@ class SyntaxError extends CompilationError {
 
 	SyntaxError.unexpectedLexeme(PositionedLexeme lexeme) :
 		super('unexpected lexeme "$lexeme"', lexeme.lineNum);
+	
+	SyntaxError.invalidAssignmentTarget(int lineNum) :
+		super('invalid assignment target', lineNum);
+	
+	SyntaxError.exprExpected(int lineNum) :
+		super('expression expected', lineNum);
 
 	SyntaxError.statementExpected(int lineNum) :
 		super("statement expected", lineNum);

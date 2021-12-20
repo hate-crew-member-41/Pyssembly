@@ -43,25 +43,32 @@ List<Object> statementBlocks(Queue<PositionedLexeme> lexemes, [int blockLevel = 
 }
 
 Object statement(Queue<PositionedLexeme> lexemes) {
-	final first = lexemes.removeFirst();
+	final lineNum = lexemes.first.lineNum;
+	Object? expr = expression(lexemes);
 
-	if (first.lexeme == Lexeme.identifier) {
-		final second = lexemes.removeFirst();
+	if (expr != null) {
+		if (lexemes.isEmpty) return expr;
 
-		if (assignmentOperators.contains(second.lexeme)) {
-			// todo: add compound assignments
-			var expr = expression(lexemes, second.lineNum);
+		if (assignmentOperators.contains(lexemes.first.lexeme)) {
+			if (expr is! PositionedLexeme || expr.lexeme != Lexeme.identifier) {
+				throw SyntaxError.invalidAssignmentTarget(lineNum);
+			}
 
-			if (second.lexeme != Lexeme.assignmentOperator) {
-				final compoundAssignment = constLexemes[second.lexeme]!;
+			final assignmentOperator = lexemes.removeFirst();
+			var value = expression(lexemes);
+
+			if (value == null) throw SyntaxError.exprExpected(assignmentOperator.lineNum);
+
+			if (assignmentOperator.lexeme != Lexeme.assignmentOperator) {
+				final compoundAssignment = constLexemes[assignmentOperator.lexeme]!;
 				final assignmentLength = constLexemes[Lexeme.assignmentOperator]!.length;
 				final operatorCode = compoundAssignment.substring(0, compoundAssignment.length - assignmentLength);
 
 				final operation = constLexemes.entries.firstWhere((lexeme) => lexeme.value == operatorCode).key;
-				expr = TwoOperandExpression(first, expr, operation);
+				value = TwoOperandExpression(expr, value, operation);
 			}
 
-			final statement = Assignment(first.value as String, expr);
+			final statement = Assignment(expr.value as String, value);
 
 			if (lexemes.isNotEmpty) {
 				throw SyntaxError.unexpectedLexeme(lexemes.first);
@@ -69,35 +76,39 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 
 			return statement;
 		}
+
+		throw SyntaxError.unexpectedLexeme(lexemes.first);
 	}
 
 	// if (first == Lexeme.ifKeyword) {
 		
 	// }
 
-	throw SyntaxError.statementExpected(first.lineNum);
+	throw SyntaxError.statementExpected(lineNum);
 }
 
-Object expression(Queue<PositionedLexeme> lexemes, int lineNum) {
-	Object expr = operand(lexemes, lineNum);
+Object? expression(Queue<PositionedLexeme> lexemes) {
+	Object? expr = operand(lexemes);
+
+	if (expr == null) return null;
 
 	while (lexemes.isNotEmpty && operators.contains(lexemes.first.lexeme)) {
-		final posLexeme = lexemes.removeFirst();
+		final operator = lexemes.removeFirst();
+		final operand_ = operand(lexemes);
 
-		if (!operators.contains(posLexeme.lexeme)) {
-			throw SyntaxError.unexpectedLexeme(posLexeme);
-		}
+		if (operand_ == null) throw SyntaxError.operandExpected(operator.lineNum);
+		// if (!operators.contains(posLexeme.lexeme)) {
+		// 	throw SyntaxError.unexpectedLexeme(posLexeme);
+		// }
 
-		expr = TwoOperandExpression(expr, operand(lexemes, posLexeme.lineNum), posLexeme.lexeme);
+		expr = TwoOperandExpression(expr!, operand_, operator.lexeme);
 	}
 
 	return expr;
 }
 
-Object operand(Queue<PositionedLexeme> lexemes, int lineNum) {
-	if (lexemes.isEmpty) {
-		throw SyntaxError.operandExpected(lineNum);
-	}
+Object? operand(Queue<PositionedLexeme> lexemes) {
+	if (lexemes.isEmpty) return null;
 
 	final posLexeme = lexemes.removeFirst();
 
@@ -117,7 +128,7 @@ Object operand(Queue<PositionedLexeme> lexemes, int lineNum) {
 					return Call(posLexeme.value as String, args);
 				}
 
-				args.add(expression(lexemes, lastLexemeLineNum));
+				args.add(expression(lexemes)!);
 				if (lexemes.first.lexeme == Lexeme.comma) lexemes.removeFirst();
 			}
 		}
@@ -127,7 +138,7 @@ Object operand(Queue<PositionedLexeme> lexemes, int lineNum) {
 
 	if (posLexeme.lexeme == Lexeme.openingParenthesis) {
 		final lastOperandLineNum = lexemes.last.lineNum;
-		final expr = expression(lexemes, posLexeme.lineNum);
+		final expr = expression(lexemes);
 
 		if (lexemes.isEmpty) {
 			throw BracketError.closingExpected(closingBrackets[posLexeme.lexeme]!, lastOperandLineNum);
@@ -138,7 +149,11 @@ Object operand(Queue<PositionedLexeme> lexemes, int lineNum) {
 	}
 
 	if (unaryOperators.contains(posLexeme.lexeme)) {
-		return OneOperandExpression(operand(lexemes, posLexeme.lineNum), posLexeme.lexeme);
+		final operand_ = operand(lexemes);
+
+		if (operand_ == null) throw SyntaxError.operandExpected(posLexeme.lineNum);
+
+		return OneOperandExpression(operand_, posLexeme.lexeme);
 	}
 
 	throw SyntaxError.unexpectedLexeme(posLexeme);
