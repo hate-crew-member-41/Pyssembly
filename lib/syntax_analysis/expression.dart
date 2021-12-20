@@ -1,19 +1,28 @@
+import 'dart:collection';
+
 import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme;
-import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 
 
-class Expression {
+class Call {
+	final String identifier;
+	final Queue<Object> arguments;
+
+	Call(this.identifier, this.arguments);
+}
+
+
+class TwoOperandExpression {
 	final Object leftOperand;
 	final Object rightOperand;
 	final Lexeme operation;
 
-	Expression(this.leftOperand, this.rightOperand, this.operation);
+	TwoOperandExpression(this.leftOperand, this.rightOperand, this.operation);
 }
 
 
 class OneOperandExpression {
 	final Object operand;
-	final PositionedLexeme operation;
+	final Object operation;
 
 	OneOperandExpression(this.operand, this.operation);
 }

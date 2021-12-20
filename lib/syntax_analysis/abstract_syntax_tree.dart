@@ -42,8 +42,7 @@ List<Object> statementBlocks(Queue<PositionedLexeme> lexemes, [int blockLevel = 
 	return statements;
 }
 
-// todo; specify the type
-statement(Queue<PositionedLexeme> lexemes) {
+Object statement(Queue<PositionedLexeme> lexemes) {
 	final first = lexemes.removeFirst();
 
 	if (first.lexeme == Lexeme.identifier) {
@@ -68,17 +67,17 @@ statement(Queue<PositionedLexeme> lexemes) {
 	throw SyntaxError.statementExpected(first.lineNum);
 }
 
-Object expression(Queue<PositionedLexeme> lexemes, lineNum) {
+Object expression(Queue<PositionedLexeme> lexemes, int lineNum) {
 	Object expr = operand(lexemes, lineNum);
 
 	while (lexemes.isNotEmpty && operators.contains(lexemes.first.lexeme)) {
-		final lexeme = lexemes.removeFirst();
+		final posLexeme = lexemes.removeFirst();
 
-		if (!operators.contains(lexeme.lexeme)) {
-			throw SyntaxError.unexpectedLexeme(lexeme);
+		if (!operators.contains(posLexeme.lexeme)) {
+			throw SyntaxError.unexpectedLexeme(posLexeme);
 		}
 
-		expr = Expression(expr, operand(lexemes, lexeme.lineNum), lexeme.lexeme);
+		expr = TwoOperandExpression(expr, operand(lexemes, posLexeme.lineNum), posLexeme.lexeme);
 	}
 
 	return expr;
@@ -89,25 +88,47 @@ Object operand(Queue<PositionedLexeme> lexemes, int lineNum) {
 		throw SyntaxError.operandExpected(lineNum);
 	}
 
-	final lexeme = lexemes.removeFirst();
+	final posLexeme = lexemes.removeFirst();
 
-	if (operands.contains(lexeme.lexeme)) return lexeme;
+	if (operands.contains(posLexeme.lexeme)) {
+		if (posLexeme.lexeme == Lexeme.identifier && lexemes.first.lexeme == Lexeme.openingParenthesis) {
+			final lastLexemeLineNum = lexemes.last.lineNum;
+			lexemes.removeFirst();
+			final args = Queue<Object>();
 
-	if (lexeme.lexeme == Lexeme.openingParenthesis) {
+			while (true) {
+				if (lexemes.isEmpty) {
+					throw BracketError.closingExpected(Lexeme.closingParenthesis, lastLexemeLineNum);
+				}
+
+				if (lexemes.first.lexeme == Lexeme.closingParenthesis) {
+					lexemes.removeFirst();
+					return Call(posLexeme.value as String, args);
+				}
+
+				args.add(expression(lexemes, lastLexemeLineNum));
+				if (lexemes.first.lexeme == Lexeme.comma) lexemes.removeFirst();
+			}
+		}
+
+		return posLexeme;
+	}
+
+	if (posLexeme.lexeme == Lexeme.openingParenthesis) {
 		final lastOperandLineNum = lexemes.last.lineNum;
-		final expr = expression(lexemes, lexeme.lineNum);
+		final expr = expression(lexemes, posLexeme.lineNum);
 
 		if (lexemes.isEmpty) {
-			throw BracketError.closingExpected(closingBrackets[lexeme.lexeme]!, lastOperandLineNum);
+			throw BracketError.closingExpected(closingBrackets[posLexeme.lexeme]!, lastOperandLineNum);
 		}
 
 		lexemes.removeFirst();
 		return expr;
 	}
 
-	if (unaryOperators.contains(lexeme.lexeme)) {
-		return OneOperandExpression(operand(lexemes, lexeme.lineNum), lexeme);
+	if (unaryOperators.contains(posLexeme.lexeme)) {
+		return OneOperandExpression(operand(lexemes, posLexeme.lineNum), posLexeme.lexeme);
 	}
 
-	throw SyntaxError.unexpectedLexeme(lexeme);
+	throw SyntaxError.unexpectedLexeme(posLexeme);
 }
