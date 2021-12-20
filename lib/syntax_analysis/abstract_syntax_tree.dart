@@ -113,7 +113,11 @@ Object? operand(Queue<PositionedLexeme> lexemes) {
 	final posLexeme = lexemes.removeFirst();
 
 	if (operands.contains(posLexeme.lexeme)) {
-		if (posLexeme.lexeme == Lexeme.identifier && lexemes.first.lexeme == Lexeme.openingParenthesis) {
+		if (posLexeme.lexeme == Lexeme.identifier) {
+			if (lexemes.isEmpty || lexemes.first.lexeme != Lexeme.openingParenthesis) {
+				return posLexeme;
+			}
+
 			final lastLexemeLineNum = lexemes.last.lineNum;
 			lexemes.removeFirst();
 			final args = Queue<Object>();
