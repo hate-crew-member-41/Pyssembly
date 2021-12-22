@@ -11,3 +11,9 @@ class If {
 
 	If(this.condition, [this.body]);
 }
+
+class Else {
+	Object? body;
+
+	Else([this.body]);
+}

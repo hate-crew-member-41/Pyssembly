@@ -80,6 +80,8 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 		throw SyntaxError.unexpectedLexeme(lexemes.first);
 	}
 
+	// todo: reduce code duplication along the following statements
+
 	if (lexemes.first.lexeme == Lexeme.ifKeyword) {
 		lexemes.removeFirst();
 		final lastOperandLineNum = lexemes.last.lineNum;
@@ -94,10 +96,35 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 		Object? body;
 
 		if (lexemes.isNotEmpty) {
+			if (invalidInlineBodyFirstLexemes.contains(lexemes.first.lexeme)) {
+				throw SyntaxError.invalidInlineBody(lexemes.first.lineNum);
+			}
+
 			body = statement(lexemes);
 		}
 
 		return If(condition, body);
+	}
+
+	if (lexemes.first.lexeme == Lexeme.elseKeyword) {
+		final lineNum = lexemes.removeFirst().lineNum;
+
+		if (lexemes.isEmpty || lexemes.first.lexeme != Lexeme.colon) {
+			throw SyntaxError.colonExpected(lineNum);
+		}
+
+		lexemes.removeFirst();
+		Object? body;
+
+		if (lexemes.isNotEmpty) {
+			if (invalidInlineBodyFirstLexemes.contains(lexemes.first.lexeme)) {
+				throw SyntaxError.invalidInlineBody(lexemes.first.lineNum);
+			}
+
+			body = statement(lexemes);
+		}
+
+		return Else(body);
 	}
 
 	throw SyntaxError.statementExpected(lineNum);

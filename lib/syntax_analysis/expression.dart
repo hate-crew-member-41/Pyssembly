@@ -96,3 +96,12 @@ const operands = {
 	Lexeme.noneLiteral,
 	Lexeme.strLiteral
 };
+
+const invalidInlineBodyFirstLexemes = {
+	Lexeme.defKeyword,
+	Lexeme.ifKeyword,
+	Lexeme.elifKeyword,
+	Lexeme.elseKeyword,
+	Lexeme.forKeyword,
+	Lexeme.whileKeyword
+};

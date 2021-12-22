@@ -33,6 +33,9 @@ class SyntaxError extends CompilationError {
 	
 	SyntaxError.colonExpected(int lineNum) :
 		super("':' expected", lineNum);
+	
+	SyntaxError.invalidInlineBody(int lineNum) :
+		super("invalid inline body", lineNum);
 
 	SyntaxError.statementExpected(int lineNum) :
 		super("statement expected", lineNum);
