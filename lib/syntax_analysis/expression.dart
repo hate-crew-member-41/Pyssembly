@@ -22,7 +22,7 @@ class TwoOperandExpression {
 
 class OneOperandExpression {
 	final Object operand;
-	final Object operation;
+	final Lexeme operation;
 
 	OneOperandExpression(this.operand, this.operation);
 }

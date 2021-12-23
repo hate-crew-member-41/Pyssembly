@@ -3,7 +3,21 @@ import 'dart:io' show File;
 import 'errors/compilation_error.dart' show CompilationError;
 import 'lexical_analysis/lexical_analysis.dart' show lexemes;
 import 'syntax_analysis/abstract_syntax_tree.dart' show abstractSyntaxTree;
-import 'code_generation/code_generation.dart' show writeCodeSection;
+import 'code_generation/code_generation.dart' show writeCode;
+
+
+extension on File {
+	File get asm {
+		String pathPy = path;
+
+		if (pathPy.endsWith('.py')) {
+			pathPy = pathPy.substring(0, pathPy.length - 3);
+		}
+
+		final pathAsm = pathPy + '.asm';
+		return File(pathAsm);
+	}
+}
 
 
 /// Compiles the code in the Python [file],
@@ -22,7 +36,7 @@ Future<void> compile(File file) async {
 		print("\tsyntax analysis (${watch.elapsedMilliseconds} ms)");
 
 		watch.reset();
-		writeCodeSection(tree, file);
+		writeCode(tree, file.asm);
 		print("\tcode generation (${watch.elapsedMilliseconds} ms)");
 	}
 	on CompilationError catch (error) {

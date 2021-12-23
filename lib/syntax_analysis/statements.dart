@@ -30,3 +30,9 @@ class If extends CompoundStatement {
 class Else extends CompoundStatement {
 	Else(List<Object>? body, int lineNum) : super(body, lineNum);
 }
+
+class While extends CompoundStatement {
+	final Object condition;
+
+	While(this.condition, List<Object>? body, int lineNum) : super(body, lineNum);
+}
