@@ -3,17 +3,21 @@ import 'dart:collection';
 import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, constLexemes;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 
-import 'package:pyssembly/errors/syntax_error.dart';
 import 'package:pyssembly/errors/bracket_error.dart';
+import 'package:pyssembly/errors/indentation_error.dart';
+import 'package:pyssembly/errors/syntax_error.dart';
 
 import 'expression.dart';
 import 'statements.dart';
 
 
 /// The abstract syntax tree built from the [lexemes].
-// todo: specify the type
-abstractSyntaxTree(Queue<PositionedLexeme> lexemes) {
+List<Object> abstractSyntaxTree(Queue<PositionedLexeme> lexemes) {
 	final statements_ = statementBlocks(lexemes);
+	assignBlocks(statements_);
+	assignElseStatements(statements_);
+
+	return statements_;
 }
 
 List<Object> statementBlocks(Queue<PositionedLexeme> lexemes, [int blockLevel = 0]) {
@@ -68,7 +72,7 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 				value = TwoOperandExpression(expr, value, operation);
 			}
 
-			final statement = Assignment(expr.value as String, value);
+			final statement = Assignment(expr.value as String, value, lineNum);
 
 			if (lexemes.isNotEmpty) {
 				throw SyntaxError.unexpectedLexeme(lexemes.first);
@@ -83,8 +87,8 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 	// todo: reduce code duplication along the following statements
 
 	if (lexemes.first.lexeme == Lexeme.ifKeyword) {
-		lexemes.removeFirst();
 		final lastOperandLineNum = lexemes.last.lineNum;
+		lexemes.removeFirst();
 		final condition = expression(lexemes);
 
 		if (condition == null) throw SyntaxError.exprExpected(lineNum);
@@ -93,17 +97,17 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 		}
 
 		lexemes.removeFirst();
-		Object? body;
+		List<Object>? body;
 
 		if (lexemes.isNotEmpty) {
 			if (invalidInlineBodyFirstLexemes.contains(lexemes.first.lexeme)) {
 				throw SyntaxError.invalidInlineBody(lexemes.first.lineNum);
 			}
 
-			body = statement(lexemes);
+			body = [statement(lexemes)];
 		}
 
-		return If(condition, body);
+		return If(condition, body, lastOperandLineNum);
 	}
 
 	if (lexemes.first.lexeme == Lexeme.elseKeyword) {
@@ -114,17 +118,17 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 		}
 
 		lexemes.removeFirst();
-		Object? body;
+		List<Object>? body;
 
 		if (lexemes.isNotEmpty) {
 			if (invalidInlineBodyFirstLexemes.contains(lexemes.first.lexeme)) {
 				throw SyntaxError.invalidInlineBody(lexemes.first.lineNum);
 			}
 
-			body = statement(lexemes);
+			body = [statement(lexemes)];
 		}
 
-		return Else(body);
+		return Else(body, lineNum);
 	}
 
 	throw SyntaxError.statementExpected(lineNum);
@@ -149,8 +153,6 @@ Object? expression(Queue<PositionedLexeme> lexemes) {
 
 Object? operand(Queue<PositionedLexeme> lexemes) {
 	if (lexemes.isEmpty) return null;
-
-	// final posLexeme = lexemes.removeFirst();
 
 	if (operands.contains(lexemes.first.lexeme)) {
 		final operand = lexemes.removeFirst();
@@ -203,5 +205,45 @@ Object? operand(Queue<PositionedLexeme> lexemes) {
 		if (operand_ == null) throw SyntaxError.operandExpected(operator.lineNum);
 
 		return OneOperandExpression(operand_, operator.lexeme);
+	}
+}
+
+void assignBlocks(List<Object> statements) {
+	for (int index = 0; index < statements.length; index++) {
+		final statement = statements[index];
+		final blockFollows = index < statements.length - 1 && statements[index + 1] is List;
+
+		if (statement is CompoundStatement && statement.body == null) {
+			if (blockFollows) {
+				statement.body = statements.removeAt(index + 1) as List<Object>;
+				assignBlocks(statement.body as List<Object>);
+				continue;
+			}
+
+			throw IndentationError.indentedBlockExpected(statement.lineNum);
+		}
+
+		if (blockFollows) {
+			throw IndentationError.unexpectedIndentedBlock((statement as Statement).lineNum);
+		}
+	}
+}
+
+void assignElseStatements(List<Object> statements) {
+	If? ifStatement;
+
+	for (final statement in statements) {
+		if (statement is CompoundStatement) assignElseStatements(statement.body!);
+
+		if (statement is If) ifStatement = statement;
+
+		else if (statement is Else) {
+			if (ifStatement == null) {
+				throw SyntaxError.unexpectedElse(statement.lineNum);
+			}
+
+			ifStatement.elseBlock = statement;
+			ifStatement = null;
+		}
 	}
 }

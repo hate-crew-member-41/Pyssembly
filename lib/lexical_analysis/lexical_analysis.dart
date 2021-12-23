@@ -98,27 +98,27 @@ Future<Queue<PositionedLexeme>> lexemes(File file) async {
 	final indentations = [0];
 	final brackets = Stack<Lexeme>();
 
-	await for (String line in lines) {
-		if (line.isEmpty) continue;
+	try {
+		await for (String line in lines) {
+			if (line.isEmpty) continue;
 
-		// todo: also consider '\' and multiline string literals
-		if (brackets.isEmpty) {
-			final indentationChange_ = line.indentationChange(indentations);
-			
-			if (indentationChange_ > 0) {
-				indentations.add(indentations.last + indentationChange_);
+			// todo: also consider '\' and multiline string literals
+			if (brackets.isEmpty) {
+				final indentationChange_ = line.indentationChange(indentations);
+				
+				if (indentationChange_ > 0) {
+					indentations.add(indentations.last + indentationChange_);
+				}
+
+				if (indentationChange_ < 0) {
+					indentations.removeRange(indentations.length + indentationChange_, indentations.length);
+				}
+
+				lexemes.addLexeme(lineNum, Lexeme.indentation, indentations.level);
 			}
 
-			if (indentationChange_ < 0) {
-				indentations.removeRange(indentations.length + indentationChange_, indentations.length);
-			}
+			line = line.trimLeft();
 
-			lexemes.addLexeme(lineNum, Lexeme.indentation, indentations.level);
-		}
-
-		line = line.trimLeft();
-
-		try {
 			// todo: think about the order to make each iteration the cheapest possible
 			handleLexeme: while (line.isNotEmpty) {
 				// next-char-dependent constant lexemes and bool literal
@@ -301,10 +301,10 @@ Future<Queue<PositionedLexeme>> lexemes(File file) async {
 
 			}
 		}
-		on CompilationError catch (error) {
-			error.lineNum = lineNum;
-			rethrow;
-		}
+	}
+	on CompilationError catch (error) {
+		error.lineNum = lineNum;
+		rethrow;
 	}
 
 	return lexemes;

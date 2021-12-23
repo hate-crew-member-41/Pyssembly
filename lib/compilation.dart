@@ -17,8 +17,12 @@ Future<void> compile(File file) async {
 		print("\tlexical analysis (${watch.elapsedMilliseconds} ms): ${lexemes_.length} lexemes");
 
 		watch.reset();
-		abstractSyntaxTree(lexemes_);
+		final tree = abstractSyntaxTree(lexemes_);
 		print("\tsyntax analysis (${watch.elapsedMilliseconds} ms)");
+
+		watch.reset();
+		writeCode(tree, file);
+		print("\tcode generation (${watch.elapsedMilliseconds} ms)");
 	}
 	on CompilationError catch (error) {
 		print(error);

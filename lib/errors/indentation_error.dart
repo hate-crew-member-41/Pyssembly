@@ -2,10 +2,16 @@ import 'compilation_error.dart';
 
 
 class IndentationError extends CompilationError {
-	// IndentationError.indentationExpected() : super("indentaion expected");
-
-	// IndentationError.unexpectedIndentation() : super("unexpected indentaion");
+	// lexical analysis
 
 	IndentationError.noMatch() :
 		super("indentaion does not match");
+
+	// syntax analysis
+	
+	IndentationError.indentedBlockExpected(int lineNum) :
+		super("indented block expected", lineNum);
+	
+	IndentationError.unexpectedIndentedBlock(int lineNum) :
+		super("unexpected indented block", lineNum);
 }

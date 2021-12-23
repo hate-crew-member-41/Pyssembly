@@ -39,4 +39,7 @@ class SyntaxError extends CompilationError {
 
 	SyntaxError.statementExpected(int lineNum) :
 		super("statement expected", lineNum);
+	
+	SyntaxError.unexpectedElse(int lineNum) :
+		super("unexpected else block", lineNum);
 }
