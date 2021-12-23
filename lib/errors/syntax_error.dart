@@ -3,7 +3,7 @@ import 'compilation_error.dart';
 
 
 class SyntaxError extends CompilationError {
-	// lexical-analysis errors
+	// lexical-analysis
 
 	SyntaxError.invalidNum(String system) :
 		super("invalid $system literal");
@@ -17,7 +17,7 @@ class SyntaxError extends CompilationError {
 	SyntaxError.unknownLexeme() :
 		super("unknown lexeme");
 
-	// syntax-analysis errors
+	// syntax-analysis
 
 	SyntaxError.operandExpected(int lineNum) :
 		super("operand expected", lineNum);

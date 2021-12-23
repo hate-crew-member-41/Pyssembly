@@ -1,4 +1,4 @@
-import 'dart:collection';
+import 'dart:collection' show Queue;
 
 import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme, constLexemes;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';

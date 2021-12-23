@@ -1,8 +1,9 @@
-import 'dart:io';
+import 'dart:io' show File;
 
 import 'errors/compilation_error.dart' show CompilationError;
 import 'lexical_analysis/lexical_analysis.dart' show lexemes;
 import 'syntax_analysis/abstract_syntax_tree.dart' show abstractSyntaxTree;
+import 'code_generation/code_generation.dart' show writeCode;
 
 
 /// Compiles the code in the Python [file],

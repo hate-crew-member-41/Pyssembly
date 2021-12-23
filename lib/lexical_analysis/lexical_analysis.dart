@@ -1,6 +1,6 @@
-import 'dart:collection';
-import 'dart:convert';
-import 'dart:io';
+import 'dart:collection' show Queue;
+import 'dart:convert' show utf8, LineSplitter;
+import 'dart:io' show File;
 
 import 'package:stack/stack.dart';
 
