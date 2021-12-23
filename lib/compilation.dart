@@ -3,7 +3,7 @@ import 'dart:io' show File;
 import 'errors/compilation_error.dart' show CompilationError;
 import 'lexical_analysis/lexical_analysis.dart' show lexemes;
 import 'syntax_analysis/abstract_syntax_tree.dart' show abstractSyntaxTree;
-import 'code_generation/code_generation.dart' show writeCode;
+import 'code_generation/code_generation.dart' show writeCodeSection;
 
 
 /// Compiles the code in the Python [file],
@@ -22,7 +22,7 @@ Future<void> compile(File file) async {
 		print("\tsyntax analysis (${watch.elapsedMilliseconds} ms)");
 
 		watch.reset();
-		writeCode(tree, file);
+		writeCodeSection(tree, file);
 		print("\tcode generation (${watch.elapsedMilliseconds} ms)");
 	}
 	on CompilationError catch (error) {

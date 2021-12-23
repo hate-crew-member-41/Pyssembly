@@ -232,7 +232,9 @@ void assignBlocks(List<Object> statements) {
 void assignElseStatements(List<Object> statements) {
 	If? ifStatement;
 
-	for (final statement in statements) {
+	for (int index = 0; index < statements.length; index++) {
+		final statement = statements[index];
+
 		if (statement is CompoundStatement) assignElseStatements(statement.body!);
 
 		if (statement is If) ifStatement = statement;
@@ -242,7 +244,7 @@ void assignElseStatements(List<Object> statements) {
 				throw SyntaxError.unexpectedElse(statement.lineNum);
 			}
 
-			ifStatement.elseBlock = statement;
+			ifStatement.elseBlock = statements.removeAt(index) as Else;
 			ifStatement = null;
 		}
 	}
