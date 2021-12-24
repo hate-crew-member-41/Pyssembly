@@ -1,6 +1,6 @@
 import 'dart:io' show File, FileMode;
 
-import 'package:pyssembly/syntax_analysis/expression.dart' show Call;
+import 'package:pyssembly/syntax_analysis/expressions.dart' show Call;
 import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 import 'package:pyssembly/syntax_analysis/statements.dart';
@@ -8,6 +8,7 @@ import 'package:pyssembly/syntax_analysis/statements.dart';
 import 'package:pyssembly/errors/syntax_error.dart';
 
 import 'code_section.dart';
+import 'procedures.dart';
 
 
 extension Code on File {
@@ -27,6 +28,7 @@ void writeHeadSection(File file) {
 	file.writeAsStringSync(
 		'.386\n'
 		'.model flat, stdcall\n'
+		'include \\masm32\\include\\masm32rt.inc\n'
 	);
 }
 
@@ -50,10 +52,12 @@ Set<String> variables(List<Object> tree) {
 }
 
 void writeDataSection(Set<String> variables, File file) {
-	String code = '.data\n';
+	String code =
+		'.data\n'
+		'buffer db 32 dup(0)\n';
 
 	for (final identifier in variables) {
-		code += '${asmIdentifier(identifier)} dd ?\n';
+		code += '${asmIdentifier(identifier)} dd 0\n';
 	}
 
 	file.appendCode(code);
@@ -64,6 +68,7 @@ String asmIdentifier(String identifier) => '_$identifier';
 void writeCodeSection(List<Object> tree, File file) {
 	file.appendCode(
 		'.code\n'
+		'$binToDecStrProc'
 		'main:\n'
 	);
 	writeStatements(tree, file);
@@ -135,7 +140,16 @@ void writeStatements(List<Object> statements, File file, [String? loopLabel]) {
 			
 			case Call:
 				final statement = statementObj as Call;
-				file.appendCode('; ${statement.identifier}(${statement.arguments})\n');
+
+				if (statement.identifier == 'print') {
+					final posLexeme = statement.arguments.first as PositionedLexeme;
+					final identifier = asmIdentifier(posLexeme.value as String);
+					file.appendCode(
+						'invoke BinToDecStr, addr $identifier, 32, addr buffer\n'
+						'invoke StdOut, addr buffer\n'
+					);
+				}
+
 				break;
 			
 			default:

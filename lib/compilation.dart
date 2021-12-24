@@ -2,7 +2,7 @@ import 'dart:io' show File;
 
 import 'errors/compilation_error.dart' show CompilationError;
 import 'lexical_analysis/lexical_analysis.dart' show lexemes;
-import 'syntax_analysis/abstract_syntax_tree.dart' show abstractSyntaxTree;
+import 'syntax_analysis/syntax_analysis.dart' show abstractSyntaxTree;
 import 'code_generation/code_generation.dart' show writeCode;
 
 
@@ -29,15 +29,15 @@ Future<void> compile(File file) async {
 		final watch = Stopwatch()..start();
 		final lexemes_ = await lexemes(file);
 
-		print("\tlexical analysis (${watch.elapsedMilliseconds} ms): ${lexemes_.length} lexemes");
+		print("\tlexical analysis: ${watch.elapsedMilliseconds} ms (${lexemes_.length} lexemes)");
 
 		watch.reset();
 		final tree = abstractSyntaxTree(lexemes_);
-		print("\tsyntax analysis (${watch.elapsedMilliseconds} ms)");
+		print("\tsyntax analysis: ${watch.elapsedMilliseconds} ms");
 
 		watch.reset();
 		writeCode(tree, file.asm);
-		print("\tcode generation (${watch.elapsedMilliseconds} ms)");
+		print("\tcode generation: ${watch.elapsedMilliseconds} ms");
 	}
 	on CompilationError catch (error) {
 		print(error);

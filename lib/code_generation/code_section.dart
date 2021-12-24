@@ -1,6 +1,6 @@
 import 'dart:io' show File;
 
-import 'package:pyssembly/syntax_analysis/expression.dart';
+import 'package:pyssembly/syntax_analysis/expressions.dart';
 import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 
@@ -131,7 +131,7 @@ void writeExpression(Object expression, File file) {
 			break;
 
 		case Lexeme.hexLiteral:
-			value = '${operand.value}h';
+			value = '0${operand.value}h';
 			break;
 		
 		case Lexeme.boolLiteral:

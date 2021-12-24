@@ -144,10 +144,6 @@ Future<Queue<PositionedLexeme>> lexemes(File file) async {
 				final identifier = line.varLexemeMatch(Lexeme.identifier)?.group(0);
 
 				if (identifier != null) {
-					if (identifier.startsWith(lexemeExprs[Lexeme.decLiteral]!)) {
-						throw SyntaxError.invalidIdentifier();
-					}
-
 					lexemes.addLexeme(lineNum, Lexeme.identifier, identifier);
 					line = line.afterLexeme(identifier);
 					continue;

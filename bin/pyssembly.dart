@@ -22,5 +22,5 @@ void main(List<String> arguments) async {
 	}
 }
 
-const help = "\nCompile Python code to Assembly (MASM 32-bit).\n"
-"Usage: pyssembly <files> [-i]\n";
+const help = "\nCompile Python code to Assembly x86 (MASM).\n"
+"Usage: pyssembly <files>\n";
