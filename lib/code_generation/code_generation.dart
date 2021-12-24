@@ -1,6 +1,11 @@
 import 'dart:io' show File, FileMode;
 
+import 'package:pyssembly/syntax_analysis/expression.dart' show Call;
+import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme;
+import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 import 'package:pyssembly/syntax_analysis/statements.dart';
+
+import 'package:pyssembly/errors/syntax_error.dart';
 
 import 'code_section.dart';
 
@@ -65,7 +70,7 @@ void writeCodeSection(List<Object> tree, File file) {
 	file.appendCode('end main\n');
 }
 
-void writeStatements(List<Object> statements, File file) {
+void writeStatements(List<Object> statements, File file, [String? loopLabel]) {
 	for (final statementObj in statements) {
 		switch (statementObj.runtimeType) {
 			case Assignment:
@@ -76,18 +81,19 @@ void writeStatements(List<Object> statements, File file) {
 				file.appendCode('mov $identifier, edi\n');
 
 				break;
-			
+
 			case If:
 				final statement = statementObj as If;
-				writeExpression(statement.condition, file);
 				final afterLabel = 'after_if_${statement.lineNum}';
+
+				writeExpression(statement.condition, file);
 
 				if (statement.elseBlock == null) {
 					file.appendCode(
 						'cmp edi, 0\n'
 						'je $afterLabel\n'
 					);
-					writeStatements(statement.body!, file);
+					writeStatements(statement.body!, file, loopLabel);
 					file.appendCode('$afterLabel:\n');
 				}
 				else {
@@ -97,18 +103,54 @@ void writeStatements(List<Object> statements, File file) {
 						'cmp edi, 0\n'
 						'je $elseLabel\n'
 					);
-					writeStatements(statement.body!, file);
+					writeStatements(statement.body!, file, loopLabel);
 					file.appendCode(
 						'jmp $afterLabel\n'
 						'$elseLabel:\n'
 					);
-					writeStatements(statement.elseBlock!.body!, file);
+					writeStatements(statement.elseBlock!.body!, file, loopLabel);
 					file.appendCode('$afterLabel:\n');
 				}
 
 				break;
+
+			case While:
+				final statement = statementObj as While;
+				final label = 'while_${statement.lineNum}';
+				final afterLabel = 'after_' + label;
+
+				file.appendCode('$label:\n');
+				writeExpression(statement.condition, file);
+				file.appendCode(
+					'cmp edi, 0\n'
+					'je $afterLabel\n'
+				);
+				writeStatements(statement.body!, file, label);
+				file.appendCode(
+					'jmp $label\n'
+					'$afterLabel:\n'
+				);
+
+				break;
 			
-			// case
+			case Call:
+				final statement = statementObj as Call;
+				file.appendCode('; ${statement.identifier}(${statement.arguments})\n');
+				break;
+			
+			default:
+				final statement = statementObj as PositionedLexeme;
+
+				if (statement.lexeme == Lexeme.continueKeyword) {
+					if (loopLabel == null) throw SyntaxError.noLoop(statement);
+
+					file.appendCode('jmp $loopLabel\n');
+				}
+				else if (statement.lexeme == Lexeme.breakKeyword) {
+					if (loopLabel == null) throw SyntaxError.noLoop(statement);
+
+					file.appendCode('jmp after_$loopLabel\n');
+				}
 		}
 	}
 }

@@ -8,6 +8,7 @@ import 'package:pyssembly/errors/indentation_error.dart';
 import 'package:pyssembly/errors/syntax_error.dart';
 
 import 'expression.dart';
+import 'lexeme_groups.dart';
 import 'statements.dart';
 
 
@@ -110,6 +111,30 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 		return If(condition, body, lastOperandLineNum);
 	}
 
+	if (lexemes.first.lexeme == Lexeme.whileKeyword) {
+		final lastOperandLineNum = lexemes.last.lineNum;
+		lexemes.removeFirst();
+		final condition = expression(lexemes);
+
+		if (condition == null) throw SyntaxError.exprExpected(lineNum);
+		if (lexemes.isEmpty || lexemes.first.lexeme != Lexeme.colon) {
+			throw SyntaxError.colonExpected(lastOperandLineNum);
+		}
+
+		lexemes.removeFirst();
+		List<Object>? body;
+
+		if (lexemes.isNotEmpty) {
+			if (invalidInlineBodyFirstLexemes.contains(lexemes.first.lexeme)) {
+				throw SyntaxError.invalidInlineBody(lexemes.first.lineNum);
+			}
+
+			body = [statement(lexemes)];
+		}
+
+		return While(condition, body, lastOperandLineNum);
+	}
+
 	if (lexemes.first.lexeme == Lexeme.elseKeyword) {
 		final lineNum = lexemes.removeFirst().lineNum;
 
@@ -129,6 +154,16 @@ Object statement(Queue<PositionedLexeme> lexemes) {
 		}
 
 		return Else(body, lineNum);
+	}
+
+	if (singleKeywordStatements.contains(lexemes.first.lexeme)) {
+		final posLexeme = lexemes.removeFirst();
+
+		if (lexemes.isNotEmpty) {
+			throw SyntaxError.unexpectedLexeme(posLexeme);
+		}
+
+		return posLexeme;
 	}
 
 	throw SyntaxError.statementExpected(lineNum);

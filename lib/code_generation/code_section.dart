@@ -4,7 +4,7 @@ import 'package:pyssembly/syntax_analysis/expression.dart';
 import 'package:pyssembly/lexical_analysis/lexemes.dart' show Lexeme;
 import 'package:pyssembly/lexical_analysis/positioned_lexeme.dart';
 
-import 'code_generation.dart' show Code;
+import 'code_generation.dart' show Code, asmIdentifier;
 
 
 const singleInstructionOperationsInstructions = {
@@ -68,12 +68,24 @@ void writeExpression(Object expression, File file) {
 			file.appendCode(comparisonExprCode(instruction));
 			return;
 		}
+
+		if (expression.operation == Lexeme.modOperator) {
+			file.appendCode(
+				'mod_subtract:\n'
+				'cmp edi, esi\n'
+				'jl after_mod\n'
+				'sub edi, esi\n'
+				'jmp mod_subtract\n'
+				'after_mod:\n'
+			);
+			return;
+		}
 	}
-	
+
 	if (expression is OneOperandExpression) {
 		writeExpression(expression.operand, file);
 		late String code;
-	
+
 		switch (expression.operation) {
 			case Lexeme.subOperator:
 				code = 
@@ -106,6 +118,10 @@ void writeExpression(Object expression, File file) {
 	late String value;
 
 	switch (operand.lexeme) {
+		case Lexeme.identifier:
+			value = asmIdentifier(operand.value as String);
+			break;
+
 		case Lexeme.binLiteral:
 			value = '${operand.value}b';
 			break;
