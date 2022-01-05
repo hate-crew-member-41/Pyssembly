@@ -1,3 +1,3 @@
 # Pyssembly
 
-No one needs a compiler to convert Python into Assembly (MASM 32-bit), but I'm building one anyway.
+No one needs a compiler to convert Python to Assembly x86 (MASM), but I've built one anyway (kinda).
